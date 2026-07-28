@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* ---- 温馨手账风 全局样式 ---- */
+
+:root {
+  --color-primary: #FF7B7B;
+  --color-primary-dark: #E85D5D;
+  --color-accent: #FFD93D;
+  --color-bg: #FFF8F0;
+  --color-card: #FFFFFF;
+  --color-text: #4A3728;
+  --color-text-secondary: #8B7355;
+  --color-success: #7BC67E;
+  --color-spain-red: #C0392B;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--color-bg);
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8D5C4;
+  border-radius: 999px;
+}
+
+/* 输入框通用样式 */
+input, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+/* 点击反馈 */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 移动端安全区域 */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
