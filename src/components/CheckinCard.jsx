@@ -38,13 +38,13 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh }) {
     <>
       <div className="card card-ink anim-up" style={{ animationDelay: `${idx * 0.04}s`, position: 'relative' }}>
         {isOwn && !edit && (
-          <div style={{ position: 'absolute', top: 14, right: 10, display: 'flex', gap: 6 }}>
+          <div style={{ position: 'absolute', bottom: 12, right: 10, display: 'flex', gap: 6 }}>
             <button onClick={() => { setTxt(checkin.content); setEdit(true) }}
-              style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink-light)', cursor: 'pointer' }}>
-              <Pencil size={13} /></button>
+              style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)', background: 'var(--white)', color: 'var(--ink-light)', cursor: 'pointer' }}>
+              <Pencil size={12} /></button>
             <button onClick={del}
-              style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(139,58,58,0.2)', background: 'var(--white)', color: 'var(--wine)', cursor: 'pointer' }}>
-              <Trash2 size={13} /></button>
+              style={{ width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(139,58,58,0.2)', background: 'var(--white)', color: 'var(--wine)', cursor: 'pointer' }}>
+              <Trash2 size={12} /></button>
           </div>
         )}
 
