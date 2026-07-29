@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Trophy, Plus, Users, CalendarDays, Clock, RefreshCw, Target, Flag, CheckCircle, XCircle } from 'lucide-react'
+import { Trophy, Plus, Users, CalendarDays, Clock, RefreshCw, Target, Flag, CheckCircle, XCircle, Trash2 } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import { useNavigate } from 'react-router-dom'
@@ -89,6 +89,17 @@ export default function ChallengeListPage() {
   const handleCreateSuccess = () => {
     setShowCreate(false)
     fetchChallenges()
+  }
+
+  const handleDelete = async (challengeId, e) => {
+    e.stopPropagation()
+    if (!confirm('确定删除这个挑战吗？')) return
+    try {
+      await supabase.from('challenges').delete().eq('id', challengeId)
+      fetchChallenges()
+    } catch (err) {
+      console.error('删除失败:', err.message)
+    }
   }
 
   const getStatusBadge = (challenge) => {
@@ -180,10 +191,20 @@ export default function ChallengeListPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06 }}
                 onClick={() => navigate(`/challenges/${challenge.id}`)}
-                className="bg-white rounded-3xl p-5 shadow-[0_2px_16px_rgba(255,123,123,0.1)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,123,123,0.18)] transition-shadow"
+                className="bg-white rounded-3xl p-5 shadow-[0_2px_16px_rgba(255,123,123,0.1)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,123,123,0.18)] transition-shadow relative group"
               >
+                {/* 删除按钮 — 仅创建者可见 */}
+                {challenge.creator_id === user.id && (
+                  <button
+                    onClick={(e) => handleDelete(challenge.id, e)}
+                    className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-white text-[#C4A882] hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                    title="删除挑战"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 pr-6">
                     <h3 className="text-lg font-extrabold text-[#4A3728] truncate">
                       {challenge.title}
                     </h3>
