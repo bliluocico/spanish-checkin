@@ -155,7 +155,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative bg-white rounded-t-3xl sm:rounded-xl w-full sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-[0_-1px_8px_rgba(74,111,165,0.06)]"
+            className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-[0_-4px_24px_rgba(255,123,123,0.15)]"
           >
             {showSuccess ? (
               <div className="flex flex-col items-center py-10">
@@ -171,7 +171,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-2xl font-extrabold text-[#2D2D2D] mb-2"
+                  className="text-2xl font-extrabold text-[#4A3728] mb-2"
                 >
                   ¡Muy bien!
                 </motion.p>
@@ -179,7 +179,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="text-[#7A7A7A]"
+                  className="text-[#8B7355]"
                 >
                   {activeChallenge ? '挑战打卡成功！' : '打卡成功'} ✨
                 </motion.p>
@@ -204,13 +204,13 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
             ) : (
               <>
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-extrabold text-[#2D2D2D] flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#4A6FA5]" />
+                  <h2 className="text-xl font-extrabold text-[#4A3728] flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-[#FF7B7B]" />
                     今日打卡
                   </h2>
                   <button
                     onClick={handleClose}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-[#F5F0EB] text-[#7A7A7A] hover:bg-[#E5E0DA] transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF8F0] text-[#8B7355] hover:bg-[#FFE8D0] transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -218,9 +218,9 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
 
                 {/* 挑战关联提示 */}
                 {activeChallenge && (
-                  <div className="mb-4 flex items-center gap-2 bg-[#F0ECE8] rounded-xl px-3 py-2.5">
-                    <Trophy className="w-4 h-4 text-[#8B6914]" />
-                    <span className="text-sm font-semibold text-[#7A7A7A]">
+                  <div className="mb-4 flex items-center gap-2 bg-[#FFF3E0] rounded-xl px-3 py-2.5">
+                    <Trophy className="w-4 h-4 text-[#FF9800]" />
+                    <span className="text-sm font-semibold text-[#8B7355]">
                       正在挑战：{activeChallenge.title}
                     </span>
                   </div>
@@ -229,7 +229,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* 学习内容 */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
+                    <label className="block text-sm font-semibold text-[#4A3728] mb-2">
                       📖 今天学了什么？
                     </label>
                     <textarea
@@ -237,20 +237,20 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                       onChange={(e) => { setContent(e.target.value); setError('') }}
                       placeholder="比如：学了不规则动词变位、背了30个新单词、练了听力..."
                       rows={4}
-                      className="w-full px-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] resize-none transition-all duration-200 outline-none"
+                      className="w-full px-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] resize-none transition-all duration-200 outline-none"
                     />
-                    <div className="text-right text-xs text-[#A0A0A0] mt-1">
+                    <div className="text-right text-xs text-[#C4A882] mt-1">
                       {content.length}/{MAX_CONTENT_LENGTH}
                     </div>
                   </div>
 
                   {/* 学习时长 */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
+                    <label className="block text-sm font-semibold text-[#4A3728] mb-2">
                       ⏱️ 学了多少分钟？
                     </label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
                       <input
                         type="number"
                         value={duration}
@@ -258,9 +258,9 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                         placeholder="例如：45"
                         min={MIN_DURATION}
                         max={MAX_DURATION}
-                        className="w-full pl-10 pr-16 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
+                        className="w-full pl-10 pr-16 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#7A7A7A] font-semibold">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-[#8B7355] font-semibold">
                         分钟
                       </span>
                     </div>
@@ -268,7 +268,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
 
                   {/* 图片上传 */}
                   <div>
-                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
+                    <label className="block text-sm font-semibold text-[#4A3728] mb-2">
                       🖼️ 添加图片（可选）
                     </label>
                     {imagePreview ? (
@@ -276,7 +276,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                         <img
                           src={imagePreview}
                           alt="预览"
-                          className="w-24 h-24 object-cover rounded-lg border-2 border-[#E5E0DA]"
+                          className="w-24 h-24 object-cover rounded-2xl border-2 border-[#FFE8D0]"
                         />
                         <button
                           type="button"
@@ -290,7 +290,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-4 py-3 bg-[#F5F0EB] border-2 border-dashed border-[#E8D5C4] hover:border-[#4A6FA5] rounded-lg text-[#A0A0A0] hover:text-[#4A6FA5] transition-all duration-200"
+                        className="flex items-center gap-2 px-4 py-3 bg-[#FFF8F0] border-2 border-dashed border-[#E8D5C4] hover:border-[#FF7B7B] rounded-2xl text-[#C4A882] hover:text-[#FF7B7B] transition-all duration-200"
                       >
                         <Image className="w-4 h-4" />
                         <span className="text-sm">点击选择图片</span>
@@ -321,7 +321,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
                     type="submit"
                     disabled={loading}
                     whileTap={{ scale: 0.97 }}
-                    className="w-full py-3.5 bg-[#4A6FA5] hover:bg-[#3A5A8C] text-white font-bold rounded-lg shadow-[0_4px_16px_rgba(74,111,165,0.15)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="w-full py-3.5 bg-[#FF7B7B] hover:bg-[#E85D5D] text-white font-bold rounded-2xl shadow-[0_4px_16px_rgba(255,123,123,0.35)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

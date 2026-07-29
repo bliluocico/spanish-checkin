@@ -84,10 +84,10 @@ export default function ChallengeDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFF8F0] flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl animate-bounce mb-4">🏆</div>
-          <p className="text-[#A0A0A0]">加载挑战详情...</p>
+          <p className="text-[#C4A882]">加载挑战详情...</p>
         </div>
       </div>
     )
@@ -107,19 +107,19 @@ export default function ChallengeDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen bg-[#FFF8F0]">
       {/* 顶部 */}
-      <div className="sticky top-0 z-30 bg-[#F5F0EB]/80 backdrop-blur-xl border-b border-[#E5E0DA]/30">
+      <div className="sticky top-0 z-30 bg-[#FFF8F0]/80 backdrop-blur-xl border-b border-[#FFE8D0]/30">
         <div className="px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate('/challenges')}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#7A7A7A] shadow-sm hover:text-[#4A6FA5] transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#8B7355] shadow-sm hover:text-[#FF7B7B] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-extrabold text-[#2D2D2D] truncate">{challenge.title}</h1>
-            <div className="flex items-center gap-3 text-xs text-[#7A7A7A] mt-0.5">
+            <h1 className="text-lg font-extrabold text-[#4A3728] truncate">{challenge.title}</h1>
+            <div className="flex items-center gap-3 text-xs text-[#8B7355] mt-0.5">
               <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{challenge.total_days}天</span>
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{String(challenge.deadline_time).substring(0,5)}截止</span>
             </div>
@@ -127,7 +127,7 @@ export default function ChallengeDetailPage() {
           {isActive && (
             <button
               onClick={() => setShowCheckin(true)}
-              className="px-4 py-2 bg-[#4A6FA5] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#3A5A8C] transition-colors flex items-center gap-1 flex-shrink-0"
+              className="px-4 py-2 bg-[#FF7B7B] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#E85D5D] transition-colors flex items-center gap-1 flex-shrink-0"
             >
               <Sparkles className="w-4 h-4" />
               打卡
@@ -149,8 +149,8 @@ export default function ChallengeDetailPage() {
             ) : challenge.failed_user_id === user.id ? (
               <div className="text-center">
                 <div className="text-6xl mb-3">💔</div>
-                <p className="text-lg font-bold text-[#8B4444]">挑战失败</p>
-                <p className="text-sm text-[#7A7A7A] mt-1">失败徽章待定中...</p>
+                <p className="text-lg font-bold text-[#E85D5D]">挑战失败</p>
+                <p className="text-sm text-[#8B7355] mt-1">失败徽章待定中...</p>
               </div>
             ) : (
               <BorgesBadge size={100} animated showText />
@@ -168,22 +168,22 @@ export default function ChallengeDetailPage() {
                 key={p.user_id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`rounded-lg p-4 text-center ${
-                  isCurrentUser ? 'bg-white border-2 border-[#8B6914]/40' : 'bg-white'
+                className={`rounded-2xl p-4 text-center ${
+                  isCurrentUser ? 'bg-white border-2 border-[#FFD93D]/40' : 'bg-white'
                 }`}
               >
                 <div className="text-2xl mb-1">{isCurrentUser ? '📝' : '🌸'}</div>
-                <p className="text-sm font-bold text-[#2D2D2D] truncate">
+                <p className="text-sm font-bold text-[#4A3728] truncate">
                   {isCurrentUser ? '我' : getNickname(p.user_id)}
                 </p>
-                <p className="text-lg font-extrabold text-[#4A6FA5] mt-1">
+                <p className="text-lg font-extrabold text-[#FF7B7B] mt-1">
                   {userChecks.length} / {challenge.total_days}
                 </p>
-                <p className="text-[10px] text-[#A0A0A0]">打卡天数</p>
+                <p className="text-[10px] text-[#C4A882]">打卡天数</p>
                 {challenge.status === 'completed' && (
                   <div className="mt-2">
-                    {challenge.winner_id === p.user_id && <span className="text-xs bg-[#EDEBE0] px-2 py-0.5 rounded-full">🏆 胜出</span>}
-                    {challenge.failed_user_id === p.user_id && <span className="text-xs bg-[#EDE5E5] px-2 py-0.5 rounded-full">💔 败北</span>}
+                    {challenge.winner_id === p.user_id && <span className="text-xs bg-[#FFF9C4] px-2 py-0.5 rounded-full">🏆 胜出</span>}
+                    {challenge.failed_user_id === p.user_id && <span className="text-xs bg-[#FFEBEE] px-2 py-0.5 rounded-full">💔 败北</span>}
                   </div>
                 )}
               </motion.div>
@@ -192,9 +192,9 @@ export default function ChallengeDetailPage() {
         </div>
 
         {/* 每日打卡网格 */}
-        <div className="bg-white rounded-xl p-4 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-          <h3 className="text-sm font-bold text-[#2D2D2D] mb-3 flex items-center gap-2">
-            <Target className="w-4 h-4 text-[#4A6FA5]" />
+        <div className="bg-white rounded-3xl p-4 shadow-[0_2px_12px_rgba(255,123,123,0.08)]">
+          <h3 className="text-sm font-bold text-[#4A3728] mb-3 flex items-center gap-2">
+            <Target className="w-4 h-4 text-[#FF7B7B]" />
             每日打卡记录
           </h3>
           <div className="space-y-2">
@@ -206,9 +206,9 @@ export default function ChallengeDetailPage() {
               )
               return (
                 <div key={day.date} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${
-                  day.isToday ? 'bg-[#F0ECE8]' : day.isPast ? 'bg-[#FAFAFA]' : 'bg-[#F5F5F5]'
+                  day.isToday ? 'bg-[#FFF3E0]' : day.isPast ? 'bg-[#FAFAFA]' : 'bg-[#F5F5F5]'
                 }`}>
-                  <span className="text-xs font-bold text-[#7A7A7A] w-8 text-center">
+                  <span className="text-xs font-bold text-[#8B7355] w-8 text-center">
                     第{day.dayNum}天
                   </span>
                   <span className={`text-xl ${myCheckin ? '' : 'opacity-30'}`}>
@@ -217,14 +217,14 @@ export default function ChallengeDetailPage() {
                   <span className={`text-xl ${friendCheckin ? '' : 'opacity-30'}`}>
                     🌸
                   </span>
-                  <span className="text-[10px] text-[#A0A0A0] ml-auto">
+                  <span className="text-[10px] text-[#C4A882] ml-auto">
                     {day.date}
                   </span>
                 </div>
               )
             })}
             {dailyGrid.length > 14 && (
-              <p className="text-xs text-center text-[#A0A0A0] mt-2">
+              <p className="text-xs text-center text-[#C4A882] mt-2">
                 仅显示最近 14 天，共 {challenge.total_days} 天
               </p>
             )}

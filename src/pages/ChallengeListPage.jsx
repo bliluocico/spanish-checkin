@@ -47,11 +47,11 @@ export default function ChallengeListPage() {
 
   const getStatusBadge = (challenge) => {
     if (challenge.status === 'completed') {
-      if (challenge.winner_id === user.id) return { icon: '🏆', text: '你赢了！', color: 'bg-[#EDEBE0] text-[#8B6914]' }
-      if (challenge.failed_user_id === user.id) return { icon: '💔', text: '败北', color: 'bg-[#EDE5E5] text-[#8B4444]' }
-      return { icon: '🤝', text: '平局', color: 'bg-[#E8ECE5] text-[#4A6B4A]' }
+      if (challenge.winner_id === user.id) return { icon: '🏆', text: '你赢了！', color: 'bg-[#FFF9C4] text-[#F57F17]' }
+      if (challenge.failed_user_id === user.id) return { icon: '💔', text: '败北', color: 'bg-[#FFEBEE] text-[#C62828]' }
+      return { icon: '🤝', text: '平局', color: 'bg-[#E8F5E9] text-[#2E7D32]' }
     }
-    return { icon: '🔥', text: '进行中', color: 'bg-[#F0ECE8] text-[#6B4E00]' }
+    return { icon: '🔥', text: '进行中', color: 'bg-[#FFF3E0] text-[#E65100]' }
   }
 
   const countUserCheckins = async (challengeId, userId) => {
@@ -64,26 +64,26 @@ export default function ChallengeListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen bg-[#FFF8F0]">
       {/* 顶部标题栏 */}
-      <div className="sticky top-0 z-30 bg-[#F5F0EB]/80 backdrop-blur-xl border-b border-[#E5E0DA]/30">
+      <div className="sticky top-0 z-30 bg-[#FFF8F0]/80 backdrop-blur-xl border-b border-[#FFE8D0]/30">
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#2D2D2D] flex items-center gap-2">
+            <h1 className="text-2xl font-extrabold text-[#4A3728] flex items-center gap-2">
               🏆 打卡挑战
             </h1>
-            <p className="text-xs text-[#A0A0A0] mt-0.5">和好朋友一起坚持学习</p>
+            <p className="text-xs text-[#C4A882] mt-0.5">和好朋友一起坚持学习</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={fetchChallenges}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#A0A0A0] hover:text-[#4A6FA5] shadow-sm transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#C4A882] hover:text-[#FF7B7B] shadow-sm transition-colors"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => setShowCreate(true)}
-              className="px-4 py-2 bg-[#4A6FA5] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#3A5A8C] transition-colors flex items-center gap-1"
+              className="px-4 py-2 bg-[#FF7B7B] text-white text-sm font-bold rounded-xl shadow-md hover:bg-[#E85D5D] transition-colors flex items-center gap-1"
             >
               <Plus className="w-4 h-4" />
               新建
@@ -97,7 +97,7 @@ export default function ChallengeListPage() {
         {loading ? (
           <div className="flex flex-col items-center py-20">
             <div className="text-5xl animate-bounce mb-4">🏆</div>
-            <p className="text-[#A0A0A0]">加载挑战列表...</p>
+            <p className="text-[#C4A882]">加载挑战列表...</p>
           </div>
         ) : challenges.length === 0 ? (
           <motion.div
@@ -106,13 +106,13 @@ export default function ChallengeListPage() {
             className="flex flex-col items-center py-16 px-4"
           >
             <div className="text-7xl mb-6">🎯</div>
-            <h2 className="text-xl font-bold text-[#2D2D2D] mb-2">还没有挑战</h2>
-            <p className="text-[#7A7A7A] text-center mb-4">
+            <h2 className="text-xl font-bold text-[#4A3728] mb-2">还没有挑战</h2>
+            <p className="text-[#8B7355] text-center mb-4">
               创建一个打卡挑战，邀请好友一起完成！
             </p>
             <button
               onClick={() => setShowCreate(true)}
-              className="px-6 py-3 bg-[#4A6FA5] text-white font-bold rounded-lg shadow-lg hover:bg-[#3A5A8C] transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-[#FF7B7B] text-white font-bold rounded-2xl shadow-lg hover:bg-[#E85D5D] transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               创建第一个挑战
@@ -134,15 +134,15 @@ export default function ChallengeListPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06 }}
                 onClick={() => navigate(`/challenges/${challenge.id}`)}
-                className="bg-white rounded-xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.04)] cursor-pointer hover:shadow-[0_1px_8px_rgba(74,111,165,0.07)] transition-shadow"
+                className="bg-white rounded-3xl p-5 shadow-[0_2px_16px_rgba(255,123,123,0.1)] cursor-pointer hover:shadow-[0_4px_20px_rgba(255,123,123,0.18)] transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-extrabold text-[#2D2D2D] truncate">
+                    <h3 className="text-lg font-extrabold text-[#4A3728] truncate">
                       {challenge.title}
                     </h3>
                     {challenge.description && (
-                      <p className="text-sm text-[#7A7A7A] mt-0.5 line-clamp-1">
+                      <p className="text-sm text-[#8B7355] mt-0.5 line-clamp-1">
                         {challenge.description}
                       </p>
                     )}
@@ -152,7 +152,7 @@ export default function ChallengeListPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-[#7A7A7A] mb-3">
+                <div className="flex items-center gap-4 text-xs text-[#8B7355] mb-3">
                   <span className="flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" />
                     {challenge.total_days} 天
@@ -169,14 +169,14 @@ export default function ChallengeListPage() {
 
                 {/* 进度指示 */}
                 {isActive && hasStarted && (
-                  <div className="bg-[#F5F0EB] rounded-xl p-3">
-                    <div className="flex items-center gap-2 text-xs text-[#7A7A7A] mb-1">
+                  <div className="bg-[#FFF8F0] rounded-xl p-3">
+                    <div className="flex items-center gap-2 text-xs text-[#8B7355] mb-1">
                       <Flag className="w-3.5 h-3.5" />
                       进度：{endDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} 结束
                     </div>
-                    <div className="h-1.5 bg-[#E5E0DA] rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[#FFE8D0] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#4A6FA5] rounded-full transition-all"
+                        className="h-full bg-[#FF7B7B] rounded-full transition-all"
                         style={{
                           width: `${Math.min(100, Math.max(0,
                             ((new Date().getTime() - new Date(challenge.start_date).getTime()) /

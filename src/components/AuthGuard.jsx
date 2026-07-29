@@ -6,10 +6,10 @@ export default function AuthGuard({ children }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F5F0EB]">
+      <div className="flex items-center justify-center min-h-screen bg-[#FFF8F0]">
         <div className="text-center">
           <div className="text-4xl animate-bounce mb-3">🌸</div>
-          <p className="text-[#7A7A7A]">加载中...</p>
+          <p className="text-[#8B7355]">加载中...</p>
         </div>
       </div>
     )

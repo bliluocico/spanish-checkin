@@ -76,19 +76,19 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0EB]">
+    <div className="min-h-screen bg-[#FFF8F0]">
       {/* 顶部标题栏 */}
-      <div className="sticky top-0 z-30 bg-[#F5F0EB]/80 backdrop-blur-xl border-b border-[#E5E0DA]/30">
+      <div className="sticky top-0 z-30 bg-[#FFF8F0]/80 backdrop-blur-xl border-b border-[#FFE8D0]/30">
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#2D2D2D] flex items-center gap-2">
+            <h1 className="text-2xl font-extrabold text-[#4A3728] flex items-center gap-2">
               🌸 Tu Viaje Español
             </h1>
-            <p className="text-xs text-[#A0A0A0] mt-0.5">和好朋友一起学西语 ✨</p>
+            <p className="text-xs text-[#C4A882] mt-0.5">和好朋友一起学西语 ✨</p>
           </div>
           <button
             onClick={fetchCheckins}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#A0A0A0] hover:text-[#4A6FA5] shadow-sm transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#C4A882] hover:text-[#FF7B7B] shadow-sm transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -100,16 +100,16 @@ export default function HomePage() {
         {loading && checkins.length === 0 ? (
           <div className="flex flex-col items-center py-20">
             <div className="text-5xl animate-bounce mb-4">📚</div>
-            <p className="text-[#A0A0A0]">加载打卡记录中...</p>
+            <p className="text-[#C4A882]">加载打卡记录中...</p>
           </div>
         ) : fetchError ? (
           <div className="flex flex-col items-center py-16 px-4">
             <div className="text-6xl mb-4">😵</div>
-            <p className="text-[#3A5A8C] font-bold mb-2">加载失败</p>
-            <p className="text-[#7A7A7A] text-sm text-center break-all">{fetchError}</p>
+            <p className="text-[#E85D5D] font-bold mb-2">加载失败</p>
+            <p className="text-[#8B7355] text-sm text-center break-all">{fetchError}</p>
             <button
               onClick={fetchCheckins}
-              className="mt-4 px-6 py-2 bg-[#4A6FA5] text-white rounded-xl font-bold text-sm"
+              className="mt-4 px-6 py-2 bg-[#FF7B7B] text-white rounded-xl font-bold text-sm"
             >
               重试
             </button>
@@ -121,11 +121,11 @@ export default function HomePage() {
             className="flex flex-col items-center py-16 px-4"
           >
             <div className="text-7xl mb-6">📖</div>
-            <h2 className="text-xl font-bold text-[#2D2D2D] mb-2">还没有打卡记录</h2>
-            <p className="text-[#7A7A7A] text-center mb-2">
+            <h2 className="text-xl font-bold text-[#4A3728] mb-2">还没有打卡记录</h2>
+            <p className="text-[#8B7355] text-center mb-2">
               点击下方 + 按钮，记录你的西语学习吧！
             </p>
-            <p className="text-[#A0A0A0] text-sm text-center">
+            <p className="text-[#C4A882] text-sm text-center">
               🇪🇸 ¡Vamos a aprender español!
             </p>
           </motion.div>
@@ -134,8 +134,8 @@ export default function HomePage() {
             {/* 好友标记 */}
             {checkins.some(c => c.user_id !== user.id) && (
               <div className="flex items-center gap-2 px-1 mb-1">
-                <Users className="w-4 h-4 text-[#6B8E6B]" />
-                <span className="text-sm font-bold text-[#6B8E6B]">你和朋友的学习动态</span>
+                <Users className="w-4 h-4 text-[#7BC67E]" />
+                <span className="text-sm font-bold text-[#7BC67E]">你和朋友的学习动态</span>
               </div>
             )}
 
@@ -156,9 +156,9 @@ export default function HomePage() {
         onClick={() => setShowForm(true)}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.92 }}
-        className="fixed bottom-24 right-1/2 translate-x-[calc(50%+80px)] sm:translate-x-[140px] z-40 w-14 h-14 bg-[#4A6FA5] hover:bg-[#3A5A8C] text-white rounded-lg shadow-[0_1px_4px_rgba(74,111,165,0.2)] flex items-center justify-center transition-colors duration-200"
+        className="fixed bottom-24 right-1/2 translate-x-[calc(50%+80px)] sm:translate-x-[140px] z-40 w-14 h-14 bg-[#FF7B7B] hover:bg-[#E85D5D] text-white rounded-2xl shadow-[0_6px_24px_rgba(255,123,123,0.45)] flex items-center justify-center transition-colors duration-200"
         style={{
-          boxShadow: '0 6px 24px rgba(74,111,165,0.2), 0 2px 8px rgba(74,111,165,0.12)',
+          boxShadow: '0 6px 24px rgba(255,123,123,0.45), 0 2px 8px rgba(255,123,123,0.3)',
         }}
       >
         <Plus className="w-7 h-7" strokeWidth={2.5} />

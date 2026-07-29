@@ -1,18 +1,17 @@
 @import "tailwindcss";
 
-/* ---- 和风简约 全局样式 ---- */
+/* ---- 温馨手账风 全局样式 ---- */
 
 :root {
-  --color-primary: #4A6FA5;
-  --color-primary-dark: #3A5A8C;
-  --color-accent: #8B6914;
-  --color-bg: #F5F0EB;
-  --color-card: #FAFAF8;
-  --color-text: #2D2D2D;
-  --color-text-secondary: #7A7A7A;
-  --color-border: #E5E0DA;
-  --color-success: #6B8E6B;
-  --color-danger: #B06A6A;
+  --color-primary: #FF7B7B;
+  --color-primary-dark: #E85D5D;
+  --color-accent: #FFD93D;
+  --color-bg: #FFF8F0;
+  --color-card: #FFFFFF;
+  --color-text: #4A3728;
+  --color-text-secondary: #8B7355;
+  --color-success: #7BC67E;
+  --color-spain-red: #C0392B;
 }
 
 * {
@@ -32,7 +31,6 @@ body {
   color: var(--color-text);
   min-height: 100dvh;
   overflow-x: hidden;
-  letter-spacing: 0.02em;
 }
 
 #root {
@@ -43,24 +41,33 @@ body {
   background-color: var(--color-bg);
 }
 
-/* 滚动条 — 极简 */
-::-webkit-scrollbar { width: 2px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 0; }
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8D5C4;
+  border-radius: 999px;
+}
 
-/* 输入框通用 */
+/* 输入框通用样式 */
 input, textarea {
   font-family: inherit;
   font-size: 1rem;
   outline: none;
 }
 
+/* 点击反馈 */
 button {
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 移动端安全区域 */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 16px);
 }

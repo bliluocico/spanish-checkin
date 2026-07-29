@@ -9,7 +9,7 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [totalDays, setTotalDays] = useState('')
-  const [deadlineTime, setDeadlineTime] = useState('23:59')
+  const [deadlineTime, setDeadlineTime] = useState('23:59:00')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -165,7 +165,7 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
                     <input
                       type="time"
                       value={deadlineTime}
-                      onChange={(e) => setDeadlineTime(e.target.value + ':00')}
+                      onChange={(e) => setDeadlineTime(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] transition-all duration-200 outline-none"
                     />
                   </div>
