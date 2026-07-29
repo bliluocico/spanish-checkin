@@ -27,42 +27,42 @@ export default function CheckinCard({ checkin, isOwn, index = 0 }) {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
-        className={`rounded-3xl p-5 shadow-[0_2px_16px_rgba(255,123,123,0.1)]
-          ${isOwn ? 'bg-white border-2 border-[#FFD93D]/30' : 'bg-white'}`}
+        className={`rounded-xl p-5 shadow-[0_1px_6px_rgba(0,0,0,0.04)]
+          ${isOwn ? 'bg-white border-2 border-[#8B6914]/30' : 'bg-white'}`}
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg
-              ${isOwn ? 'bg-[#FFF3CD]' : 'bg-[#FFE8E0]'}`}
+              ${isOwn ? 'bg-[#F0EEEA]' : 'bg-[#EBE7E3]'}`}
             >
               {isOwn ? '📝' : '🌸'}
             </div>
             <div>
-              <p className="text-sm font-bold text-[#4A3728] flex items-center gap-1">
+              <p className="text-sm font-bold text-[#2D2D2D] flex items-center gap-1">
                 <User className="w-3 h-3" />
                 {checkin.profiles?.nickname || '未知用户'}
                 {isOwn && (
-                  <span className="text-[10px] bg-[#FFD93D]/30 text-[#8B7355] px-1.5 py-0.5 rounded-full font-normal">
+                  <span className="text-[10px] bg-[#8B6914]/30 text-[#7A7A7A] px-1.5 py-0.5 rounded-full font-normal">
                     我
                   </span>
                 )}
                 {checkin.challenge_id && (
-                  <span className="text-[10px] bg-[#FFF3E0] text-[#FF9800] px-1.5 py-0.5 rounded-full font-normal">
+                  <span className="text-[10px] bg-[#F0ECE8] text-[#8B6914] px-1.5 py-0.5 rounded-full font-normal">
                     🏆 挑战
                   </span>
                 )}
               </p>
-              <p className="text-xs text-[#C4A882]">{timeAgo(checkin.created_at)}</p>
+              <p className="text-xs text-[#A0A0A0]">{timeAgo(checkin.created_at)}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-[#FFF8F0] rounded-full px-3 py-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#FF7B7B]" />
-            <span className="text-sm font-bold text-[#FF7B7B]">{checkin.duration_minutes} 分钟</span>
+          <div className="flex items-center gap-1 bg-[#F5F0EB] rounded-full px-3 py-1.5">
+            <Clock className="w-3.5 h-3.5 text-[#4A6FA5]" />
+            <span className="text-sm font-bold text-[#4A6FA5]">{checkin.duration_minutes} 分钟</span>
           </div>
         </div>
 
-        <p className="text-[#4A3728] leading-relaxed whitespace-pre-wrap">
+        <p className="text-[#2D2D2D] leading-relaxed whitespace-pre-wrap">
           {checkin.content}
         </p>
 
@@ -73,14 +73,14 @@ export default function CheckinCard({ checkin, isOwn, index = 0 }) {
               src={checkin.image_url}
               alt="学习记录"
               onClick={() => setShowFullImage(true)}
-              className="w-full max-h-48 object-cover rounded-2xl cursor-pointer hover:opacity-90 transition-opacity border border-[#FFE8D0]"
+              className="w-full max-h-48 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity border border-[#E5E0DA]"
               loading="lazy"
             />
           </div>
         )}
 
-        <div className="mt-3 pt-3 border-t border-[#FFF0E5]">
-          <p className="text-xs text-[#C4A882]">
+        <div className="mt-3 pt-3 border-t border-[#EBE8E5]">
+          <p className="text-xs text-[#A0A0A0]">
             📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', {
               year: 'numeric',
               month: 'long',
@@ -113,7 +113,7 @@ export default function CheckinCard({ checkin, isOwn, index = 0 }) {
               exit={{ scale: 0.8 }}
               src={checkin.image_url}
               alt="学习记录大图"
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
             />
           </motion.div>
         )}

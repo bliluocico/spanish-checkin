@@ -87,7 +87,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-[#F5F0EB] flex flex-col items-center justify-center px-6 py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -102,18 +102,18 @@ export default function LoginPage() {
           >
             🌸
           </motion.div>
-          <h1 className="text-3xl font-extrabold text-[#4A3728] mb-2">
+          <h1 className="text-3xl font-extrabold text-[#2D2D2D] mb-2">
             Tu Viaje Español
           </h1>
-          <p className="text-[#8B7355] text-sm">和好朋友一起，记录西语学习之旅 ✨</p>
+          <p className="text-[#7A7A7A] text-sm">和好朋友一起，记录西语学习之旅 ✨</p>
         </div>
 
         {/* 切换按钮 */}
-        <div className="flex bg-white rounded-2xl p-1 mb-6 shadow-sm">
+        <div className="flex bg-white rounded-lg p-1 mb-6 shadow-sm">
           <button
             onClick={() => { setIsLogin(true); setError(''); setSuccessMsg('') }}
             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-              isLogin ? 'bg-[#FF7B7B] text-white shadow-md' : 'text-[#8B7355]'
+              isLogin ? 'bg-[#4A6FA5] text-white shadow-md' : 'text-[#7A7A7A]'
             }`}
           >
             登录
@@ -121,7 +121,7 @@ export default function LoginPage() {
           <button
             onClick={() => { setIsLogin(false); setError(''); setSuccessMsg('') }}
             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-              !isLogin ? 'bg-[#FF7B7B] text-white shadow-md' : 'text-[#8B7355]'
+              !isLogin ? 'bg-[#4A6FA5] text-white shadow-md' : 'text-[#7A7A7A]'
             }`}
           >
             注册
@@ -135,39 +135,39 @@ export default function LoginPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl p-6 shadow-[0_4px_24px_rgba(255,123,123,0.12)] space-y-4"
+          className="bg-white rounded-xl p-6 shadow-[0_2px_8px_rgba(74,111,165,0.05)] space-y-4"
         >
           {/* 邮箱 */}
           <div>
-            <label className="block text-sm font-semibold text-[#4A3728] mb-1.5">邮箱</label>
+            <label className="block text-sm font-semibold text-[#2D2D2D] mb-1.5">邮箱</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
               <input
                 ref={emailRef}
                 type="email"
                 placeholder="your@email.com"
                 onChange={() => setError('')}
-                className="w-full pl-10 pr-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
               />
             </div>
           </div>
 
           {/* 密码 */}
           <div>
-            <label className="block text-sm font-semibold text-[#4A3728] mb-1.5">密码</label>
+            <label className="block text-sm font-semibold text-[#2D2D2D] mb-1.5">密码</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
               <input
                 ref={passwordRef}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="至少 6 位"
                 onChange={() => setError('')}
-                className="w-full pl-10 pr-12 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                className="w-full pl-10 pr-12 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C4A882] hover:text-[#8B7355] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] hover:text-[#7A7A7A] transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -178,29 +178,29 @@ export default function LoginPage() {
           {!isLogin && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-[#4A3728] mb-1.5">用户名</label>
+                <label className="block text-sm font-semibold text-[#2D2D2D] mb-1.5">用户名</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
                   <input
                     ref={usernameRef}
                     type="text"
                     placeholder="英文和数字，如 xiaomei2024"
                     onChange={() => setError('')}
-                    className="w-full pl-10 pr-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                    className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#4A3728] mb-1.5">昵称</label>
+                <label className="block text-sm font-semibold text-[#2D2D2D] mb-1.5">昵称</label>
                 <div className="relative">
-                  <Smile className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+                  <Smile className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
                   <input
                     ref={nicknameRef}
                     type="text"
                     placeholder="在打卡中显示的名字"
                     onChange={() => setError('')}
-                    className="w-full pl-10 pr-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                    className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             whileTap={{ scale: 0.97 }}
-            className="w-full py-3.5 bg-[#FF7B7B] hover:bg-[#E85D5D] text-white font-bold rounded-2xl shadow-[0_4px_16px_rgba(255,123,123,0.35)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full py-3.5 bg-[#4A6FA5] hover:bg-[#3A5A8C] text-white font-bold rounded-lg shadow-[0_4px_16px_rgba(74,111,165,0.15)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -253,7 +253,7 @@ export default function LoginPage() {
           </motion.button>
         </motion.form>
 
-        <p className="text-center text-xs text-[#C4A882] mt-6">
+        <p className="text-center text-xs text-[#A0A0A0] mt-6">
           🇪🇸 ¡Aprendamos español juntos!
         </p>
       </motion.div>

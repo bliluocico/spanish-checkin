@@ -95,16 +95,16 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-[0_-4px_24px_rgba(255,123,123,0.15)]"
+            className="relative bg-white rounded-t-3xl sm:rounded-xl w-full sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-[0_-1px_8px_rgba(74,111,165,0.06)]"
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-extrabold text-[#4A3728] flex items-center gap-2">
-                <Target className="w-5 h-5 text-[#FF7B7B]" />
+              <h2 className="text-xl font-extrabold text-[#2D2D2D] flex items-center gap-2">
+                <Target className="w-5 h-5 text-[#4A6FA5]" />
                 新建挑战
               </h2>
               <button
                 onClick={handleClose}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF8F0] text-[#8B7355] hover:bg-[#FFE8D0] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-[#F5F0EB] text-[#7A7A7A] hover:bg-[#E5E0DA] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -112,7 +112,7 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-[#4A3728] mb-2">
+                <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
                   🎯 挑战名称
                 </label>
                 <input
@@ -120,12 +120,12 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
                   value={title}
                   onChange={(e) => { setTitle(e.target.value); setError('') }}
                   placeholder="如：30天西语学习冲刺"
-                  className="w-full px-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                  className="w-full px-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#4A3728] mb-2">
+                <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
                   📝 描述（可选）
                 </label>
                 <textarea
@@ -133,17 +133,17 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="简单描述挑战规则和目标..."
                   rows={2}
-                  className="w-full px-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] resize-none transition-all duration-200 outline-none"
+                  className="w-full px-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] resize-none transition-all duration-200 outline-none"
                 />
               </div>
 
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-[#4A3728] mb-2">
+                  <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
                     📅 天数
                   </label>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
                     <input
                       type="number"
                       value={totalDays}
@@ -151,22 +151,22 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
                       placeholder="30"
                       min={1}
                       max={365}
-                      className="w-full pl-10 pr-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] placeholder-[#C4A882] transition-all duration-200 outline-none"
+                      className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] placeholder-[#A0A0A0] transition-all duration-200 outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-[#4A3728] mb-2">
+                  <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">
                     ⏰ 截止时间
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4A882] w-4 h-4" />
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] w-4 h-4" />
                     <input
                       type="time"
                       value={deadlineTime}
                       onChange={(e) => setDeadlineTime(e.target.value + ':00')}
-                      className="w-full pl-10 pr-4 py-3 bg-[#FFF8F0] border-2 border-transparent focus:border-[#FF7B7B] rounded-2xl text-[#4A3728] transition-all duration-200 outline-none"
+                      className="w-full pl-10 pr-4 py-3 bg-[#F5F0EB] border-2 border-transparent focus:border-[#4A6FA5] rounded-lg text-[#2D2D2D] transition-all duration-200 outline-none"
                     />
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
                 type="submit"
                 disabled={loading}
                 whileTap={{ scale: 0.97 }}
-                className="w-full py-3.5 bg-[#FF7B7B] hover:bg-[#E85D5D] text-white font-bold rounded-2xl shadow-[0_4px_16px_rgba(255,123,123,0.35)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3.5 bg-[#4A6FA5] hover:bg-[#3A5A8C] text-white font-bold rounded-lg shadow-[0_4px_16px_rgba(74,111,165,0.15)] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
