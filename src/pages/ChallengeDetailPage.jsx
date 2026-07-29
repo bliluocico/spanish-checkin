@@ -7,6 +7,7 @@ import { useAuth } from '../authContext'
 import CheckinForm from '../components/CheckinForm'
 import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
+import DonQuixoteBadge from '../components/DonQuixoteBadge'
 
 export default function ChallengeDetailPage() {
   const { id } = useParams()
@@ -147,11 +148,7 @@ export default function ChallengeDetailPage() {
             {challenge.winner_id === user.id ? (
               <CervantesBadge size={100} animated showText />
             ) : challenge.failed_user_id === user.id ? (
-              <div className="text-center">
-                <div className="text-6xl mb-3">💔</div>
-                <p className="text-lg font-bold text-[#E85D5D]">挑战失败</p>
-                <p className="text-sm text-[#8B7355] mt-1">失败徽章待定中...</p>
-              </div>
+              <DonQuixoteBadge size={100} animated showText />
             ) : (
               <BorgesBadge size={100} animated showText />
             )}
