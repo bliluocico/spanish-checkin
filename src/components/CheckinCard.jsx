@@ -38,11 +38,15 @@ export default function CheckinCard({ checkin, isOwn, index = 0, onRefresh }) {
     if (!editContent.trim()) return
     setSaving(true)
     try {
-      await supabase.from('checkins').update({ content: editContent.trim() }).eq('id', checkin.id)
+      const { error } = await supabase.from('checkins').update({ content: editContent.trim() }).eq('id', checkin.id)
+      if (error) {
+        alert('保存失败: ' + error.message)
+        return
+      }
       setEditing(false)
       if (onRefresh) onRefresh()
     } catch (err) {
-      console.error('保存失败:', err.message)
+      alert('保存失败: ' + err.message)
     } finally {
       setSaving(false)
     }
