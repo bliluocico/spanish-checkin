@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Clock, BookOpen, Sparkles, Image, Trash2, Trophy } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
+import FormWarm, { FormWarmInput, FormWarmBtn } from '../components/FormWarm'
 
 const MAX_CONTENT_LENGTH = 500
 const MIN_DURATION = 1

@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CheckinCard from '../components/CheckinCard'
 import CheckinForm from '../components/CheckinForm'
+import BtnPrimary from '../components/BtnPrimary'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -153,17 +154,13 @@ export default function HomePage() {
       </div>
 
       {/* 浮动打卡按钮 */}
-      <motion.button
-        onClick={() => setShowForm(true)}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
-        className="fixed bottom-24 right-1/2 translate-x-[calc(50%+80px)] sm:translate-x-[140px] z-40 w-14 h-14 bg-[#FF7B7B] hover:bg-[#E85D5D] text-white rounded-2xl shadow-[0_6px_24px_rgba(255,123,123,0.45)] flex items-center justify-center transition-colors duration-200"
-        style={{
-          boxShadow: '0 6px 24px rgba(255,123,123,0.45), 0 2px 8px rgba(255,123,123,0.3)',
-        }}
+      <motion.div
+        className="fixed bottom-24 right-5 z-40"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        <Plus className="w-7 h-7" strokeWidth={2.5} />
-      </motion.button>
+        <BtnPrimary onClick={() => setShowForm(true)}>打卡</BtnPrimary>
+      </motion.div>
 
       {/* 打卡弹窗 */}
       <CheckinForm

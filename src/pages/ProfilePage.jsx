@@ -6,6 +6,8 @@ import { useAuth } from '../authContext'
 import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
 import DonQuixoteBadge from '../components/DonQuixoteBadge'
+import CardSplit from '../components/CardSplit'
+import CardGlow from '../components/CardGlow'
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -112,29 +114,18 @@ export default function ProfilePage() {
 
       <div className="px-4 py-4 space-y-5">
         {/* 用户信息 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(255,123,123,0.1)]"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#FFE8E0] rounded-2xl flex items-center justify-center text-3xl flex-shrink-0">📝</div>
-            <div className="min-w-0">
-              <h2 className="text-xl font-extrabold text-[#4A3728] truncate">{nickname}</h2>
-              <p className="text-sm text-[#C4A882] flex items-center gap-1 mt-0.5">
-                <User className="w-3 h-3" />{user?.email}
-              </p>
-            </div>
-          </div>
-          {stats.streak >= 7 && (
-            <div className="mt-4 flex items-center gap-2 bg-[#FFF8E1] rounded-2xl px-4 py-2.5">
-              <Award className="w-5 h-5 text-[#FFD93D]" />
-              <span className="text-sm font-bold text-[#8B7355]">
-                {stats.streak >= 30 ? '👑 钻石打卡王！' : stats.streak >= 14 ? '🌟 金牌学习者！' : '🔥 连续 7 天打卡！'}
-              </span>
-            </div>
-          )}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center">
+          <CardSplit name={nickname} sub={user?.email} className="max-w-[200px]" />
         </motion.div>
+        {stats.streak >= 7 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            className="flex items-center gap-2 bg-[#FFF8E1] rounded-xl px-4 py-2.5 justify-center">
+            <Award className="w-5 h-5 text-[#FFD93D]" />
+            <span className="text-sm font-bold text-[#8B7355]">
+              {stats.streak >= 30 ? '👑 钻石打卡王！' : stats.streak >= 14 ? '🌟 金牌学习者！' : '🔥 连续 7 天打卡！'}
+            </span>
+          </motion.div>
+        )}
 
         {/* 学习统计 */}
         <div className="grid grid-cols-3 gap-3">
@@ -156,12 +147,8 @@ export default function ProfilePage() {
         </div>
 
         {/* 我的徽章 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(255,123,123,0.1)]"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <CardGlow>
           <h3 className="font-bold text-[#4A3728] mb-4 flex items-center gap-2">
             <Medal className="w-4 h-4 text-[#FFD93D]" />
             我的徽章
@@ -206,6 +193,7 @@ export default function ProfilePage() {
               <span className="text-xs text-[#8B7355]">🎖 {completedChallenges.length}枚</span>
             </div>
           )}
+          </CardGlow>
         </motion.div>
 
         {/* 退出登录 */}
