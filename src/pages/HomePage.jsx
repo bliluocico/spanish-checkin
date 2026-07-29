@@ -145,6 +145,7 @@ export default function HomePage() {
                 checkin={checkin}
                 isOwn={checkin.user_id === user.id}
                 index={i}
+                onRefresh={fetchCheckins}
               />
             ))}
           </>

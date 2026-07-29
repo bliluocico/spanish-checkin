@@ -161,7 +161,7 @@ export default function ProfilePage() {
         >
           <h3 className="font-bold text-[#4A3728] mb-4 flex items-center gap-2">
             <Swords className="w-4 h-4 text-[#FF7B7B]" />
-            我的战绩
+            我的徽章
           </h3>
           <div className="flex items-center justify-center gap-6 mb-4">
             <div className="text-center">
