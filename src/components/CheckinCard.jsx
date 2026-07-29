@@ -38,7 +38,7 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh }) {
     <>
       <div className="card card-ink anim-up" style={{ animationDelay: `${idx * 0.04}s`, position: 'relative' }}>
         {isOwn && !edit && (
-          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, opacity: 0.6 }}>
+          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, opacity: 0.6, top: 14 }}>
             <button className="btn btn-icon btn-ghost" onClick={() => { setTxt(checkin.content); setEdit(true) }}><Pencil size={14} /></button>
             <button className="btn btn-icon btn-ghost" onClick={del}><Trash2 size={14} /></button>
           </div>
