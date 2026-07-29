@@ -3,6 +3,9 @@ import { motion } from 'framer-motion'
 import { LogOut, BookOpen, Clock, TrendingUp, Award, User, Trophy, Swords, Medal, Flame } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
+import CervantesBadge from '../components/CervantesBadge'
+import BorgesBadge from '../components/BorgesBadge'
+import DonQuixoteBadge from '../components/DonQuixoteBadge'
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -152,7 +155,7 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* 挑战战绩 */}
+        {/* 我的徽章 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -160,71 +163,50 @@ export default function ProfilePage() {
           className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(255,123,123,0.1)]"
         >
           <h3 className="font-bold text-[#4A3728] mb-4 flex items-center gap-2">
-            <Swords className="w-4 h-4 text-[#FF7B7B]" />
+            <Medal className="w-4 h-4 text-[#FFD93D]" />
             我的徽章
           </h3>
-          <div className="flex items-center justify-center gap-6 mb-4">
-            <div className="text-center">
-              <div className="text-3xl">🏆</div>
-              <p className="text-lg font-extrabold text-[#4A3728]">{challengeStats.wins}</p>
-              <p className="text-xs text-[#8B7355]">胜利</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl">🤝</div>
-              <p className="text-lg font-extrabold text-[#4A3728]">{challengeStats.draws}</p>
-              <p className="text-xs text-[#8B7355]">平局</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl">💔</div>
-              <p className="text-lg font-extrabold text-[#4A3728]">{challengeStats.losses}</p>
-              <p className="text-xs text-[#8B7355]">败北</p>
-            </div>
-          </div>
 
-          {/* 已完成挑战历史 */}
-          {completedChallenges.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-[#C4A882] font-semibold mb-2">挑战历史</p>
-              {completedChallenges.map(c => (
-                <div key={c.id} className="flex items-center gap-2 text-sm bg-[#FFF8F0] rounded-xl px-3 py-2">
-                  {c.winner_id === user.id ? '🏆' : c.failed_user_id === user.id ? '💔' : '🤝'}
-                  <span className="text-[#4A3728] font-semibold truncate flex-1">{c.title}</span>
-                  <span className="text-xs text-[#C4A882] flex-shrink-0">{c.total_days}天</span>
-                </div>
-              ))}
+          {completedChallenges.length === 0 ? (
+            <div className="text-center py-6">
+              <div className="text-4xl mb-3 opacity-30">🏅</div>
+              <p className="text-sm text-[#C4A882]">还没有获得徽章</p>
+              <p className="text-xs text-[#C4A882] mt-1">完成一次挑战来获得第一枚徽章吧</p>
             </div>
-          )}
-        </motion.div>
-
-        {/* 成就徽章 */}
-        {badges.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-3xl p-6 shadow-[0_2px_16px_rgba(255,123,123,0.1)]"
-          >
-            <h3 className="font-bold text-[#4A3728] mb-4 flex items-center gap-2">
-              <Medal className="w-4 h-4 text-[#FFD93D]" />
-              成就徽章
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {badges.map((badge, i) => (
+          ) : (
+            <div className="grid grid-cols-3 gap-3" style={{ maxHeight: 'none' }}>
+              {completedChallenges.map((c, i) => (
                 <motion.div
-                  key={badge.name}
+                  key={c.id}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ delay: 0.4 + i * 0.05, type: 'spring' }}
-                  className="flex items-center gap-1.5 bg-[#FFF8F0] border border-[#FFE8D0] rounded-full px-3 py-1.5"
-                  title={badge.desc}
+                  transition={{ delay: 0.1 * i, type: 'spring' }}
+                  className="flex flex-col items-center"
                 >
-                  <span className="text-base">{badge.icon}</span>
-                  <span className="text-xs font-bold text-[#8B7355]">{badge.name}</span>
+                  {c.winner_id === user.id ? (
+                    <CervantesBadge size={72} showText={false} />
+                  ) : c.failed_user_id === user.id ? (
+                    <DonQuixoteBadge size={72} showText={false} />
+                  ) : (
+                    <BorgesBadge size={72} showText={false} />
+                  )}
+                  <p className="text-[10px] text-[#8B7355] mt-1 text-center truncate w-full">{c.title}</p>
+                  <p className="text-[9px] text-[#C4A882]">{c.total_days}天</p>
                 </motion.div>
               ))}
             </div>
-          </motion.div>
-        )}
+          )}
+
+          {/* 徽章统计小字 */}
+          {completedChallenges.length > 0 && (
+            <div className="flex justify-center gap-4 mt-4 pt-4 border-t border-[#FFF0E5]">
+              <span className="text-xs text-[#8B7355]">🏆 {challengeStats.wins}胜</span>
+              <span className="text-xs text-[#8B7355]">🤝 {challengeStats.draws}平</span>
+              <span className="text-xs text-[#8B7355]">💔 {challengeStats.losses}败</span>
+              <span className="text-xs text-[#8B7355]">🎖 {completedChallenges.length}枚</span>
+            </div>
+          )}
+        </motion.div>
 
         {/* 退出登录 */}
         <motion.button
