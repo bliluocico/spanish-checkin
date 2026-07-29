@@ -17,18 +17,64 @@ export default function ChallengeListPage() {
     if (!user) return
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      // 第一步：查我参与的挑战ID
+      const { data: myParts } = await supabase
+        .from('challenge_participants')
+        .select('challenge_id')
+        .eq('user_id', user.id)
+
+      const participantIds = (myParts || []).map(p => p.challenge_id)
+
+      // 第二步：查我创建的 OR 我参与的
+      let query = supabase
         .from('challenges')
-        .select(`
-          *,
-          creator:creator_id (nickname),
-          participants:challenge_participants(user_id, status)
-        `)
-        .or(`creator_id.eq.${user.id},id.in.(select challenge_id from challenge_participants where user_id=eq.${user.id})`)
+        .select('*')
         .order('created_at', { ascending: false })
 
+      if (participantIds.length > 0) {
+        query = query.or(`creator_id.eq.${user.id},id.in.(${participantIds.join(',')})`)
+      } else {
+        query = query.eq('creator_id', user.id)
+      }
+
+      const { data: challengesData, error } = await query
+
       if (error) throw error
-      setChallenges(data || [])
+
+      // 第三步：查参与关系
+      const challengeIds = (challengesData || []).map(c => c.id)
+      let participantsMap = {}
+      if (challengeIds.length > 0) {
+        const { data: parts } = await supabase
+          .from('challenge_participants')
+          .select('challenge_id, user_id, status')
+          .in('challenge_id', challengeIds)
+
+        ;(parts || []).forEach(p => {
+          if (!participantsMap[p.challenge_id]) participantsMap[p.challenge_id] = []
+          participantsMap[p.challenge_id].push(p)
+        })
+      }
+
+      // 第四步：查创建者昵称
+      const creatorIds = [...new Set((challengesData || []).map(c => c.creator_id))]
+      let nicknameMap = {}
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, nickname')
+          .in('id', creatorIds)
+        ;(profiles || []).forEach(p => { nicknameMap[p.id] = p.nickname })
+      }
+
+      // 合并数据
+      const merged = (challengesData || []).map(c => ({
+        ...c,
+        creator: { nickname: nicknameMap[c.creator_id] || '未知用户' },
+        participants: participantsMap[c.id] || [],
+      }))
+
+      setChallenges(merged)
     } catch (err) {
       console.error('获取挑战列表失败:', err.message)
     } finally {
