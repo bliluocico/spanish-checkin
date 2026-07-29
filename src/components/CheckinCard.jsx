@@ -1,127 +1,98 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, X, Trash2, Pencil, Check } from 'lucide-react'
+import { Clock, X, Pencil, Trash2, Check } from 'lucide-react'
 import { supabase } from '../supabase'
-import CardGlow from './CardGlow'
 
-function timeAgo(dateStr) {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const diffMs = now - date
-  const diffMin = Math.floor(diffMs / 60000)
-  const diffHour = Math.floor(diffMs / 3600000)
-  const diffDay = Math.floor(diffMs / 86400000)
-  if (diffMin < 1) return '刚刚'
-  if (diffMin < 60) return `${diffMin} 分钟前`
-  if (diffHour < 24) return `${diffHour} 小时前`
-  if (diffDay === 1) return '昨天'
-  if (diffDay < 7) return `${diffDay} 天前`
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+function ago(d) {
+  const m = Math.floor((new Date() - new Date(d)) / 60000)
+  if (m < 1) return '刚刚'
+  if (m < 60) return `${m} 分钟前`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h} 小时前`
+  const days = Math.floor(h / 24)
+  if (days === 1) return '昨天'
+  if (days < 7) return `${days} 天前`
+  return new Date(d).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
-export default function CheckinCard({ checkin, isOwn, index = 0, onRefresh }) {
-  const [showFullImage, setShowFullImage] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const [editContent, setEditContent] = useState(checkin.content)
+export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh }) {
+  const [zoom, setZoom] = useState(false)
+  const [edit, setEdit] = useState(false)
+  const [txt, setTxt] = useState(checkin.content)
   const [saving, setSaving] = useState(false)
 
-  const handleDelete = async () => {
-    if (!confirm('确定删除这条打卡吗？')) return
-    try { await supabase.from('checkins').delete().eq('id', checkin.id); if (onRefresh) onRefresh() }
-    catch (err) { console.error('删除失败:', err.message) }
+  const del = async () => {
+    if (!confirm('删除这条打卡？')) return
+    await supabase.from('checkins').delete().eq('id', checkin.id)
+    onRefresh?.()
   }
 
-  const handleSave = async () => {
-    if (!editContent.trim()) return
+  const save = async () => {
+    if (!txt.trim()) return
     setSaving(true)
-    try {
-      const { error } = await supabase.from('checkins').update({ content: editContent.trim() }).eq('id', checkin.id)
-      if (error) { alert('保存失败: ' + error.message); return }
-      setEditing(false); if (onRefresh) onRefresh()
-    } catch (err) { alert('保存失败: ' + err.message) }
-    finally { setSaving(false) }
+    const { error } = await supabase.from('checkins').update({ content: txt.trim() }).eq('id', checkin.id)
+    if (error) { alert('保存失败: ' + error.message); setSaving(false); return }
+    setEdit(false); onRefresh?.(); setSaving(false)
   }
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
-        className={`relative group ${isOwn ? '' : ''}`}
-      >
-        {/* 操作按钮 — 仅自己的打卡可见 */}
-        {isOwn && !editing && (
-          <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <button onClick={() => { setEditContent(checkin.content); setEditing(true) }}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-[#999] hover:text-[#FF7B7B] hover:bg-[#FFF0EB] transition-colors shadow-sm">
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={handleDelete}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-white text-[#999] hover:text-red-500 hover:bg-red-50 transition-colors shadow-sm">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+      <div className="card card-ink anim-up" style={{ animationDelay: `${idx * 0.04}s`, position: 'relative' }}>
+        {isOwn && !edit && (
+          <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, opacity: 0.6 }}>
+            <button className="btn btn-icon btn-ghost" onClick={() => { setTxt(checkin.content); setEdit(true) }}><Pencil size={14} /></button>
+            <button className="btn btn-icon btn-ghost" onClick={del}><Trash2 size={14} /></button>
           </div>
         )}
 
-        <CardGlow className={isOwn ? 'ring-1 ring-[#FFD93D]/30' : ''}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${isOwn ? 'bg-[#FFF3CD]' : 'bg-[#FFE8E0]'}`}>
-                {isOwn ? '📝' : '🌸'}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-[#4A3728] flex items-center gap-1">
-                  {checkin.profiles?.nickname || '未知用户'}
-                  {isOwn && <span className="text-[10px] bg-[#FFD93D]/30 text-[#8B7355] px-1.5 py-0.5 rounded-full font-normal">我</span>}
-                  {checkin.challenge_id && <span className="text-[10px] bg-[#FFF3E0] text-[#FF9800] px-1.5 py-0.5 rounded-full font-normal">🏆 挑战</span>}
-                </p>
-                <p className="text-xs text-[#C4A882]">{timeAgo(checkin.created_at)}</p>
-              </div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-base" style={{ background: isOwn ? 'rgba(184,149,106,0.12)' : 'rgba(184,149,106,0.06)' }}>
+              {isOwn ? '📝' : '🌸'}
             </div>
-            <div className="flex items-center gap-1 bg-[#FFF8F0] rounded-full px-3 py-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#FF7B7B]" />
-              <span className="text-sm font-bold text-[#FF7B7B]">{checkin.duration_minutes} 分钟</span>
+            <div>
+              <p className="text-sm font-bold flex items-center gap-1" style={{ color: 'var(--ink)' }}>
+                {checkin.profiles?.nickname || '未知'}
+                {isOwn && <span className="badge badge-gold">我</span>}
+                {checkin.challenge_id && <span className="badge badge-wine">🏆 挑战</span>}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--ink-light)' }}>{ago(checkin.created_at)}</p>
             </div>
           </div>
-
-          {editing ? (
-            <div className="space-y-2">
-              <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)}
-                className="w-full px-3 py-2 bg-[#FFF8F0] border-2 border-[#FF7B7B] rounded-xl text-[#4A3728] text-sm resize-none outline-none" rows={3} autoFocus />
-              <div className="flex gap-2 justify-end">
-                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-xs font-bold text-[#8B7355] bg-[#FFF8F0] rounded-lg hover:bg-[#FFE8D0]">取消</button>
-                <button onClick={handleSave} disabled={saving} className="px-3 py-1.5 text-xs font-bold text-white bg-[#FF7B7B] rounded-lg hover:bg-[#E85D5D] flex items-center gap-1 disabled:opacity-60"><Check className="w-3 h-3" />{saving ? '保存中' : '保存'}</button>
-              </div>
-            </div>
-          ) : (
-            <p className="text-[#4A3728] leading-relaxed whitespace-pre-wrap">{checkin.content}</p>
-          )}
-
-          {checkin.image_url && (
-            <div className="mt-3">
-              <img src={checkin.image_url} alt="学习记录" onClick={() => setShowFullImage(true)}
-                className="w-full max-h-48 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity border border-[#FFE8D0]" loading="lazy" />
-            </div>
-          )}
-
-          <div className="mt-3 pt-3 border-t border-[#F0EBE5]">
-            <p className="text-xs text-[#C4A882]">
-              📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
-            </p>
+          <div className="badge badge-gold">
+            <Clock size={12} />{checkin.duration_minutes} 分钟
           </div>
-        </CardGlow>
-      </motion.div>
+        </div>
 
-      <AnimatePresence>
-        {showFullImage && checkin.image_url && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowFullImage(false)}>
-            <button onClick={() => setShowFullImage(false)} className="absolute top-4 right-4 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white"><X className="w-5 h-5" /></button>
-            <motion.img initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
-              src={checkin.image_url} alt="大图" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
-          </motion.div>
+        {edit ? (
+          <div className="flex flex-col gap-2">
+            <textarea className="input" value={txt} onChange={e => setTxt(e.target.value)} rows={3} autoFocus />
+            <div className="flex gap-2 justify-end">
+              <button className="btn btn-ghost btn-sm" onClick={() => setEdit(false)}>取消</button>
+              <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}><Check size={14} />保存</button>
+            </div>
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">{checkin.content}</p>
         )}
-      </AnimatePresence>
+
+        {checkin.image_url && (
+          <div className="mt-3">
+            <img src={checkin.image_url} alt="" onClick={() => setZoom(true)}
+              className="w-full max-h-40 object-cover rounded cursor-pointer" style={{ border: '1px solid var(--line)' }} loading="lazy" />
+          </div>
+        )}
+
+        <div className="mt-3 pt-3 flex items-center gap-2 text-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-light)' }}>
+          📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+        </div>
+      </div>
+
+      {zoom && checkin.image_url && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setZoom(false)}>
+          <button onClick={() => setZoom(false)} className="absolute top-4 right-4 text-white"><X size={24} /></button>
+          <img src={checkin.image_url} alt="" className="max-w-full max-h-[85vh] object-contain rounded" />
+        </div>
+      )}
     </>
   )
 }

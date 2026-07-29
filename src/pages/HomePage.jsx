@@ -1,173 +1,83 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Plus, BookOpen, RefreshCw, Users } from 'lucide-react'
+import { Plus, Users, RefreshCw } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CheckinCard from '../components/CheckinCard'
 import CheckinForm from '../components/CheckinForm'
-import BtnPrimary from '../components/BtnPrimary'
 
 export default function HomePage() {
   const { user } = useAuth()
   const [checkins, setCheckins] = useState([])
   const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState('')
+  const [err, setErr] = useState('')
   const [showForm, setShowForm] = useState(false)
 
-  const fetchCheckins = useCallback(async () => {
+  const fetch = useCallback(async () => {
     if (!user) return
-
     setLoading(true)
     try {
-      // 获取好友列表
-      const { data: friendships } = await supabase
-        .from('friendships')
-        .select('friend_id')
-        .eq('user_id', user.id)
+      const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id)
+      const ids = [user.id, ...(friends || []).map(f => f.friend_id)]
 
-      const friendIds = friendships?.map(f => f.friend_id) || []
-
-      // 获取自己和好友的打卡记录
-      const userIds = [user.id, ...friendIds]
-
-      const { data: checkinsData, error } = await supabase
-        .from('checkins')
-        .select('*')
-        .in('user_id', userIds)
-        .order('created_at', { ascending: false })
-        .limit(50)
-
+      const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).order('created_at', { ascending: false }).limit(50)
       if (error) throw error
 
-      // 获取所有相关用户的 profile（单独查询，避免外键关联问题）
-      const uniqueUserIds = [...new Set((checkinsData || []).map(c => c.user_id))]
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, nickname')
-        .in('id', uniqueUserIds)
+      const uids = [...new Set((checks || []).map(c => c.user_id))]
+      const { data: profiles } = await supabase.from('profiles').select('id, nickname').in('id', uids)
+      const map = {}; (profiles || []).forEach(p => { map[p.id] = p.nickname })
 
-      // 构建 id -> nickname 映射
-      const nicknameMap = {}
-      ;(profilesData || []).forEach(p => {
-        nicknameMap[p.id] = p.nickname
-      })
-
-      // 把 nickname 合并到打卡数据中
-      const merged = (checkinsData || []).map(c => ({
-        ...c,
-        profiles: { nickname: nicknameMap[c.user_id] || '未知用户' },
-      }))
-
-      setCheckins(merged)
-      setFetchError('')
-    } catch (err) {
-      console.error('获取打卡记录失败:', err.message)
-      setFetchError(err.message)
-    } finally {
-      setLoading(false)
-    }
+      setCheckins((checks || []).map(c => ({ ...c, profiles: { nickname: map[c.user_id] || '未知' } })))
+      setErr('')
+    } catch (e) { setErr(e.message) }
+    finally { setLoading(false) }
   }, [user])
 
-  useEffect(() => {
-    fetchCheckins()
-  }, [fetchCheckins])
-
-  const handleNewCheckin = () => {
-    fetchCheckins()
-  }
+  useEffect(() => { fetch() }, [fetch])
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
-      {/* 顶部标题栏 */}
-      <div className="sticky top-0 z-30 bg-[#FFF8F0]/80 backdrop-blur-xl border-b border-[#FFE8D0]/30">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#4A3728] flex items-center gap-2">
-              🌸 Tu Viaje Español
-            </h1>
-            <p className="text-xs text-[#C4A882] mt-0.5">和好朋友一起学西语 ✨</p>
-          </div>
-          <button
-            onClick={fetchCheckins}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#C4A882] hover:text-[#FF7B7B] shadow-sm transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+    <div className="page">
+      <div className="header-bar">
+        <div className="flex-1">
+          <h1 className="header-title">🌸 Tu Viaje Español</h1>
+          <p className="header-sub">和好朋友一起学西语</p>
         </div>
+        <button onClick={fetch} className="btn btn-icon btn-ghost"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} /></button>
       </div>
 
-      {/* 打卡内容列表 */}
-      <div className="px-4 py-4 space-y-3">
+      <div className="flex flex-col gap-3 mt-3">
         {loading && checkins.length === 0 ? (
-          <div className="flex flex-col items-center py-20">
-            <div className="text-5xl animate-bounce mb-4">📚</div>
-            <p className="text-[#C4A882]">加载打卡记录中...</p>
-          </div>
-        ) : fetchError ? (
-          <div className="flex flex-col items-center py-16 px-4">
-            <div className="text-6xl mb-4">😵</div>
-            <p className="text-[#E85D5D] font-bold mb-2">加载失败</p>
-            <p className="text-[#8B7355] text-sm text-center break-all">{fetchError}</p>
-            <button
-              onClick={fetchCheckins}
-              className="mt-4 px-6 py-2 bg-[#FF7B7B] text-white rounded-xl font-bold text-sm"
-            >
-              重试
-            </button>
+          <div className="empty"><div className="empty-icon">📚</div><p className="empty-sub">加载中...</p></div>
+        ) : err ? (
+          <div className="empty">
+            <div className="empty-icon">😵</div>
+            <p className="empty-title">加载失败</p>
+            <p className="empty-sub">{err}</p>
+            <button onClick={fetch} className="btn btn-primary btn-sm mt-3">重试</button>
           </div>
         ) : checkins.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-16 px-4"
-          >
-            <div className="text-7xl mb-6">📖</div>
-            <h2 className="text-xl font-bold text-[#4A3728] mb-2">还没有打卡记录</h2>
-            <p className="text-[#8B7355] text-center mb-2">
-              点击下方 + 按钮，记录你的西语学习吧！
-            </p>
-            <p className="text-[#C4A882] text-sm text-center">
-              🇪🇸 ¡Vamos a aprender español!
-            </p>
-          </motion.div>
+          <div className="empty">
+            <div className="empty-icon">📖</div>
+            <p className="empty-title">还没有打卡记录</p>
+            <p className="empty-sub">点击右下角按钮，记录你的西语学习吧！</p>
+          </div>
         ) : (
           <>
-            {/* 好友标记 */}
             {checkins.some(c => c.user_id !== user.id) && (
-              <div className="flex items-center gap-2 px-1 mb-1">
-                <Users className="w-4 h-4 text-[#7BC67E]" />
-                <span className="text-sm font-bold text-[#7BC67E]">你和朋友的学习动态</span>
+              <div className="flex items-center gap-2" style={{ color: 'var(--sage)' }}>
+                <Users size={16} /><span className="badge badge-sage">你和朋友的学习动态</span>
               </div>
             )}
-
-            {checkins.map((checkin, i) => (
-              <CheckinCard
-                key={checkin.id}
-                checkin={checkin}
-                isOwn={checkin.user_id === user.id}
-                index={i}
-                onRefresh={fetchCheckins}
-              />
-            ))}
+            {checkins.map((c, i) => <CheckinCard key={c.id} checkin={c} isOwn={c.user_id === user.id} idx={i} onRefresh={fetch} />)}
           </>
         )}
       </div>
 
-      {/* 浮动打卡按钮 */}
-      <motion.div
-        className="fixed bottom-24 right-5 z-40"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <BtnPrimary onClick={() => setShowForm(true)}>打卡</BtnPrimary>
-      </motion.div>
+      <button onClick={() => setShowForm(true)} className="btn btn-primary btn-icon"
+        style={{ position: 'fixed', bottom: 100, right: 'max(16px, calc((100vw - 640px)/2 + 16px))', zIndex: 40, width: 48, height: 48, borderRadius: '50%', boxShadow: '0 2px 12px rgba(44,36,22,0.15)' }}>
+        <Plus size={24} strokeWidth={2} />
+      </button>
 
-      {/* 打卡弹窗 */}
-      <CheckinForm
-        isOpen={showForm}
-        onClose={() => setShowForm(false)}
-        onSuccess={handleNewCheckin}
-      />
+      <CheckinForm isOpen={showForm} onClose={() => setShowForm(false)} onSuccess={fetch} />
     </div>
   )
 }

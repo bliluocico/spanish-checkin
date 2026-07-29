@@ -1,126 +1,104 @@
 import { useState, useRef } from 'react'
-import { motion } from 'framer-motion'
 import { useAuth } from '../authContext'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
-import FormBrutal, { FormBrutalTitle, FormBrutalInput, FormBrutalBtn, FormBrutalSep } from '../components/FormBrutal'
 
 export default function LoginPage() {
   const { signIn, signUp } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
+  const [ok, setOk] = useState('')
 
   const emailRef = useRef(null)
-  const passwordRef = useRef(null)
-  const usernameRef = useRef(null)
-  const nicknameRef = useRef(null)
+  const pwRef = useRef(null)
+  const userRef = useRef(null)
+  const nickRef = useRef(null)
 
-  const getValues = () => ({
+  const vals = () => ({
     email: emailRef.current?.value?.trim() || '',
-    password: passwordRef.current?.value || '',
-    username: usernameRef.current?.value?.trim() || '',
-    nickname: nicknameRef.current?.value?.trim() || '',
+    password: pwRef.current?.value || '',
+    username: userRef.current?.value?.trim() || '',
+    nickname: nickRef.current?.value?.trim() || '',
   })
 
   const validate = () => {
-    const values = getValues()
-    if (!values.email) { setError('请填写邮箱'); return false }
-    if (!values.password) { setError('请填写密码'); return false }
-    if (values.password.length < 6) { setError('密码至少需要 6 位'); return false }
-    if (!isLogin) {
-      if (!values.username) { setError('请填写用户名'); return false }
-      if (!values.nickname) { setError('请填写昵称'); return false }
-    }
-    return values
+    const v = vals()
+    if (!v.email) { setError('请填写邮箱'); return false }
+    if (!v.password || v.password.length < 6) { setError('密码至少 6 位'); return false }
+    if (!isLogin && !v.username) { setError('请填写用户名'); return false }
+    if (!isLogin && !v.nickname) { setError('请填写昵称'); return false }
+    return v
   }
 
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault()
-    const values = validate()
-    if (!values) return
-    setLoading(true)
-    setError('')
-    setSuccessMsg('')
+    const v = validate()
+    if (!v) return
+    setLoading(true); setError(''); setOk('')
     try {
-      if (isLogin) {
-        await signIn(values.email, values.password)
-      } else {
-        const result = await signUp(values.email, values.password, values.username, values.nickname)
-        if (result.user && !result.session) {
-          setSuccessMsg('注册成功！请检查邮箱确认链接。')
-        } else {
-          setSuccessMsg('注册成功！')
-        }
+      if (isLogin) { await signIn(v.email, v.password) }
+      else {
+        const r = await signUp(v.email, v.password, v.username, v.nickname)
+        if (r.user && !r.session) setOk('注册成功！请检查邮箱确认')
+        else setOk('注册成功！')
       }
     } catch (err) {
-      if (err.message?.includes('Invalid login credentials')) setError('邮箱或密码错误')
-      else if (err.message?.includes('already registered')) setError('该邮箱已被注册')
+      if (err.message?.includes('Invalid login')) setError('邮箱或密码错误')
+      else if (err.message?.includes('already registered') || err.message?.includes('已被使用')) setError(err.message.includes('已被') ? err.message : '该邮箱已注册')
       else setError(err.message || '操作失败')
     } finally { setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0] flex flex-col items-center justify-center px-6 py-10">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
+    <div className="page flex flex-col items-center justify-center" style={{ paddingTop: '20vh' }}>
+      <div className="text-center mb-8 anim-up">
+        <div className="text-5xl mb-4">🌸</div>
+        <h1 className="text-2xl font-extrabold" style={{ color: 'var(--ink)' }}>Tu Viaje Español</h1>
+        <p className="text-sm mt-2" style={{ color: 'var(--ink-light)' }}>和好朋友一起，记录西语学习之旅</p>
+      </div>
 
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🌸</div>
-          <h1 className="text-2xl font-extrabold text-[#4A3728]">Tu Viaje Español</h1>
-          <p className="text-sm text-[#8B7355] mt-1">和好朋友一起，记录西语学习之旅</p>
+      {/* 切换 */}
+      <div className="flex gap-2 mb-6 w-full max-w-sm anim-up anim-up-1">
+        <button onClick={() => { setIsLogin(true); setError(''); setOk('') }}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${isLogin ? 'btn-primary' : 'btn-outline'}`}>登录</button>
+        <button onClick={() => { setIsLogin(false); setError(''); setOk('') }}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${!isLogin ? 'btn-primary' : 'btn-outline'}`}>注册</button>
+      </div>
+
+      <form onSubmit={submit} className="card w-full max-w-sm flex flex-col gap-4 anim-up anim-up-2">
+        <input ref={emailRef} type="email" className="input" placeholder="邮箱" onChange={() => setError('')} />
+
+        <div className="relative">
+          <input ref={pwRef} type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="密码（至少6位）" onChange={() => setError('')} />
+          <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--ink-light)' }}>
+            {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
         </div>
 
-        {/* 切换 */}
-        <div className="flex gap-2 mb-6">
-          <button onClick={() => { setIsLogin(true); setError(''); setSuccessMsg('') }}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${isLogin ? 'bg-[#2D2D2D] text-white shadow-md' : 'bg-white text-[#8B7355] border border-[#E5E0DA]'}`}>登录</button>
-          <button onClick={() => { setIsLogin(false); setError(''); setSuccessMsg('') }}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${!isLogin ? 'bg-[#2D2D2D] text-white shadow-md' : 'bg-white text-[#8B7355] border border-[#E5E0DA]'}`}>注册</button>
-        </div>
+        {!isLogin && (
+          <>
+            <div style={{ borderTop: '1px solid var(--line)', margin: '4px 0' }} />
+            <input ref={userRef} className="input" placeholder="用户名（英文和数字）" onChange={() => setError('')} />
+            <input ref={nickRef} className="input" placeholder="显示昵称" onChange={() => setError('')} />
+          </>
+        )}
 
-        <FormBrutal onSubmit={handleSubmit}>
-          <FormBrutalTitle sub={isLogin ? '欢迎回来' : '创建新账号'}>
-            {isLogin ? '登录' : '注册'}
-          </FormBrutalTitle>
-
-          <FormBrutalInput ref={emailRef} type="email" placeholder="邮箱" onChange={() => setError('')} />
-
-          <div className="relative">
-            <FormBrutalInput ref={passwordRef} type={showPassword ? 'text' : 'password'} placeholder="密码（至少6位）" onChange={() => setError('')} />
-            <button type="button" onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-[#2D2D2D]">
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
+        {error && (
+          <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--wine)', background: 'rgba(139,58,58,0.06)', padding: '8px 12px', borderRadius: 'var(--radius)' }}>
+            <AlertCircle size={16} />{error}
           </div>
+        )}
+        {ok && (
+          <div className="text-sm" style={{ color: 'var(--sage)', background: 'rgba(107,142,107,0.08)', padding: '8px 12px', borderRadius: 'var(--radius)' }}>{ok}</div>
+        )}
 
-          {!isLogin && (
-            <>
-              <FormBrutalSep />
-              <FormBrutalInput ref={usernameRef} placeholder="用户名（英文数字）" onChange={() => setError('')} />
-              <FormBrutalInput ref={nicknameRef} placeholder="显示昵称" onChange={() => setError('')} />
-            </>
-          )}
+        <button type="submit" disabled={loading} className="btn btn-primary w-full">
+          {loading ? '处理中...' : isLogin ? '登录' : '注册'}
+        </button>
+      </form>
 
-          {error && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="flex items-center gap-2 text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />{error}
-            </motion.div>
-          )}
-          {successMsg && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="text-sm text-green-600 bg-green-50 rounded-lg px-3 py-2">{successMsg}</motion.div>
-          )}
-
-          <FormBrutalBtn type="submit" disabled={loading}>
-            {loading ? '处理中...' : isLogin ? '登录' : '注册'}
-          </FormBrutalBtn>
-        </FormBrutal>
-
-        <p className="text-center text-xs text-[#C4A882] mt-6">🇪🇸 ¡Aprendamos español juntos!</p>
-      </motion.div>
+      <p className="text-xs mt-6" style={{ color: 'var(--ink-light)' }}>🇪🇸 ¡Aprendamos español juntos!</p>
     </div>
   )
 }

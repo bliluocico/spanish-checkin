@@ -1,231 +1,115 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Trophy, Plus, Users, CalendarDays, Clock, RefreshCw, Target, Flag, CheckCircle, XCircle, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Trophy, CalendarDays, Clock, Users, Flag, Trash2, RefreshCw } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
-import { useNavigate } from 'react-router-dom'
 import CreateChallengeModal from '../components/CreateChallengeModal'
-import CardBrutal from '../components/CardBrutal'
-import BtnPrimary from '../components/BtnPrimary'
 
 export default function ChallengeListPage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
+  const nav = useNavigate()
   const [challenges, setChallenges] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
 
-  const fetchChallenges = useCallback(async () => {
+  const fetch = useCallback(async () => {
     if (!user) return
     setLoading(true)
     try {
-      // 第一步：查我参与的挑战ID
-      const { data: myParts } = await supabase
-        .from('challenge_participants')
-        .select('challenge_id')
-        .eq('user_id', user.id)
+      const { data: parts } = await supabase.from('challenge_participants').select('challenge_id').eq('user_id', user.id)
+      const pids = (parts || []).map(p => p.challenge_id)
+      let q = supabase.from('challenges').select('*').order('created_at', { ascending: false })
+      if (pids.length > 0) q = q.or(`creator_id.eq.${user.id},id.in.(${pids.join(',')})`)
+      else q = q.eq('creator_id', user.id)
+      const { data: chs } = await q
 
-      const participantIds = (myParts || []).map(p => p.challenge_id)
-
-      // 第二步：查我创建的 OR 我参与的
-      let query = supabase
-        .from('challenges')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (participantIds.length > 0) {
-        query = query.or(`creator_id.eq.${user.id},id.in.(${participantIds.join(',')})`)
-      } else {
-        query = query.eq('creator_id', user.id)
+      const cids = (chs || []).map(c => c.id)
+      let pMap = {}
+      if (cids.length > 0) {
+        const { data: pp } = await supabase.from('challenge_participants').select('challenge_id,user_id,status').in('challenge_id', cids)
+        ;(pp || []).forEach(p => { if (!pMap[p.challenge_id]) pMap[p.challenge_id] = []; pMap[p.challenge_id].push(p) })
       }
 
-      const { data: challengesData, error } = await query
-
-      if (error) throw error
-
-      // 第三步：查参与关系
-      const challengeIds = (challengesData || []).map(c => c.id)
-      let participantsMap = {}
-      if (challengeIds.length > 0) {
-        const { data: parts } = await supabase
-          .from('challenge_participants')
-          .select('challenge_id, user_id, status')
-          .in('challenge_id', challengeIds)
-
-        ;(parts || []).forEach(p => {
-          if (!participantsMap[p.challenge_id]) participantsMap[p.challenge_id] = []
-          participantsMap[p.challenge_id].push(p)
-        })
+      const uids = [...new Set((chs || []).map(c => c.creator_id))]
+      let nMap = {}
+      if (uids.length > 0) {
+        const { data: profs } = await supabase.from('profiles').select('id,nickname').in('id', uids)
+        ;(profs || []).forEach(p => { nMap[p.id] = p.nickname })
       }
 
-      // 第四步：查创建者昵称
-      const creatorIds = [...new Set((challengesData || []).map(c => c.creator_id))]
-      let nicknameMap = {}
-      if (creatorIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, nickname')
-          .in('id', creatorIds)
-        ;(profiles || []).forEach(p => { nicknameMap[p.id] = p.nickname })
-      }
-
-      // 合并数据
-      const merged = (challengesData || []).map(c => ({
-        ...c,
-        creator: { nickname: nicknameMap[c.creator_id] || '未知用户' },
-        participants: participantsMap[c.id] || [],
-      }))
-
-      setChallenges(merged)
-    } catch (err) {
-      console.error('获取挑战列表失败:', err.message)
-    } finally {
-      setLoading(false)
-    }
+      setChallenges((chs || []).map(c => ({ ...c, creator: { nickname: nMap[c.creator_id] || '未知' }, participants: pMap[c.id] || [] })))
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
   }, [user])
 
-  useEffect(() => {
-    fetchChallenges()
-  }, [fetchChallenges])
+  useEffect(() => { fetch() }, [fetch])
 
-  const handleCreateSuccess = () => {
-    setShowCreate(false)
-    fetchChallenges()
-  }
-
-  const handleDelete = async (challengeId, e) => {
+  const del = async (id, e) => {
     e.stopPropagation()
-    if (!confirm('确定删除这个挑战吗？')) return
-    try {
-      await supabase.from('challenges').delete().eq('id', challengeId)
-      fetchChallenges()
-    } catch (err) {
-      console.error('删除失败:', err.message)
-    }
+    if (!confirm('删除这个挑战？')) return
+    await supabase.from('challenges').delete().eq('id', id)
+    fetch()
   }
 
-  const getStatusBadge = (challenge) => {
-    if (challenge.status === 'completed') {
-      if (challenge.winner_id === user.id) return { icon: '🏆', text: '你赢了！', color: 'bg-[#FFF9C4] text-[#F57F17]' }
-      if (challenge.failed_user_id === user.id) return { icon: '💔', text: '败北', color: 'bg-[#FFEBEE] text-[#C62828]' }
-      return { icon: '🤝', text: '平局', color: 'bg-[#E8F5E9] text-[#2E7D32]' }
+  const badge = (c) => {
+    if (c.status === 'completed') {
+      if (c.winner_id === user.id) return { t: '🏆 你赢了！', c: 'badge-gold' }
+      if (c.failed_user_id === user.id) return { t: '💔 败北', c: 'badge-wine' }
+      return { t: '🤝 平局', c: 'badge-sage' }
     }
-    return { icon: '🔥', text: '进行中', color: 'bg-[#FFF3E0] text-[#E65100]' }
-  }
-
-  const countUserCheckins = async (challengeId, userId) => {
-    const { count } = await supabase
-      .from('checkins')
-      .select('*', { count: 'exact', head: true })
-      .eq('challenge_id', challengeId)
-      .eq('user_id', userId)
-    return count || 0
+    return { t: '🔥 进行中', c: 'badge-gold' }
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
-      {/* 顶部标题栏 */}
-      <div className="sticky top-0 z-30 bg-[#FFF8F0]/80 backdrop-blur-xl border-b border-[#FFE8D0]/30">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#4A3728] flex items-center gap-2">
-              🏆 打卡挑战
-            </h1>
-            <p className="text-xs text-[#C4A882] mt-0.5">和好朋友一起坚持学习</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchChallenges}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-[#C4A882] hover:text-[#FF7B7B] shadow-sm transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <BtnPrimary onClick={() => setShowCreate(true)}>新建</BtnPrimary>
-          </div>
-        </div>
+    <div className="page">
+      <div className="header-bar">
+        <div className="flex-1"><h1 className="header-title">🏆 打卡挑战</h1><p className="header-sub">和好朋友一起坚持学习</p></div>
+        <button onClick={fetch} className="btn btn-icon btn-ghost"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} /></button>
+        <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm">新建</button>
       </div>
 
-      {/* 挑战列表 */}
-      <div className="px-4 py-4 space-y-3">
-        {loading ? (
-          <div className="flex flex-col items-center py-20">
-            <div className="text-5xl animate-bounce mb-4">🏆</div>
-            <p className="text-[#C4A882]">加载挑战列表...</p>
+      <div className="flex flex-col gap-3 mt-3">
+        {loading ? <div className="empty"><div className="empty-icon">🏆</div><p className="empty-sub">加载中...</p></div>
+        : challenges.length === 0 ? (
+          <div className="empty">
+            <div className="empty-icon">🎯</div><p className="empty-title">还没有挑战</p><p className="empty-sub">创建一个打卡挑战，邀请好友一起！</p>
+            <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm mt-3">创建第一个挑战</button>
           </div>
-        ) : challenges.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center py-16 px-4"
-          >
-            <div className="text-7xl mb-6">🎯</div>
-            <h2 className="text-xl font-bold text-[#4A3728] mb-2">还没有挑战</h2>
-            <p className="text-[#8B7355] text-center mb-4">
-              创建一个打卡挑战，邀请好友一起完成！
-            </p>
-            <BtnPrimary onClick={() => setShowCreate(true)}>创建第一个挑战</BtnPrimary>
-          </motion.div>
-        ) : (
-          challenges.map((challenge, i) => {
-            const badge = getStatusBadge(challenge)
-            const endDate = new Date(challenge.start_date)
-            endDate.setDate(endDate.getDate() + challenge.total_days)
-            const isActive = challenge.status === 'active'
-            const today = new Date().toISOString().split('T')[0]
-            const hasStarted = today >= challenge.start_date
-
-            return (
-              <motion.div
-                key={challenge.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
-                onClick={() => navigate(`/challenges/${challenge.id}`)}
-                className="cursor-pointer relative group"
-              >
-                {challenge.creator_id === user.id && (
-                  <button
-                    onClick={(e) => handleDelete(challenge.id, e)}
-                    className="absolute top-3 right-3 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-white text-[#999] hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                <CardBrutal
-                  title={challenge.title}
-                  subtitle={challenge.description || undefined}
-                  banner={badge.icon + ' ' + badge.text}
-                >
-                  <div className="flex items-center gap-4 text-xs text-[#8B7355] mb-3">
-                    <span className="flex items-center gap-1"><CalendarDays className="w-3.5 h-3.5" />{challenge.total_days} 天</span>
-                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{String(challenge.deadline_time).substring(0,5)} 截止</span>
-                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{(challenge.participants||[]).length+1} 人</span>
+        ) : challenges.map((c, i) => {
+          const b = badge(c)
+          const end = new Date(c.start_date); end.setDate(end.getDate() + c.total_days)
+          return (
+            <div key={c.id} className="card card-ink anim-up" style={{ animationDelay: `${i*0.04}s`, cursor: 'pointer', position: 'relative' }}
+              onClick={() => nav(`/challenges/${c.id}`)}>
+              {c.creator_id === user.id && (
+                <button onClick={e => del(c.id, e)} className="btn btn-icon btn-ghost" style={{ position: 'absolute', top: 8, right: 8 }}><Trash2 size={14} /></button>
+              )}
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 min-w-0 pr-4">
+                  <h3 className="text-base font-extrabold truncate" style={{ color: 'var(--ink)' }}>{c.title}</h3>
+                  {c.description && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--ink-light)' }}>{c.description}</p>}
+                </div>
+                <span className={`badge ${b.c}`}>{b.t}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs mb-3" style={{ color: 'var(--ink-light)' }}>
+                <span className="flex items-center gap-1"><CalendarDays size={12} />{c.total_days} 天</span>
+                <span className="flex items-center gap-1"><Clock size={12} />{String(c.deadline_time).substring(0,5)} 截止</span>
+                <span className="flex items-center gap-1"><Users size={12} />{(c.participants||[]).length+1} 人</span>
+              </div>
+              {c.status === 'active' && (
+                <div style={{ background: 'var(--parchment-deep)', borderRadius: 'var(--radius)', padding: '10px 14px' }}>
+                  <div className="flex items-center gap-1 text-xs mb-1" style={{ color: 'var(--ink-light)' }}><Flag size={12} />{end.toLocaleDateString('zh-CN',{month:'short',day:'numeric'})} 结束</div>
+                  <div style={{ height: 3, background: 'var(--line)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: 'var(--gold)', borderRadius: 3, width: `${Math.min(100,Math.max(0,((Date.now()-new Date(c.start_date).getTime())/(c.total_days*86400000))*100))}%` }} />
                   </div>
-                  {isActive && hasStarted && (
-                    <div className="bg-[#FFF8F0] rounded-xl p-3">
-                      <div className="flex items-center gap-2 text-xs text-[#8B7355] mb-1">
-                        <Flag className="w-3.5 h-3.5" />
-                        进度：{endDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })} 结束
-                      </div>
-                      <div className="h-1.5 bg-[#FFE8D0] rounded-full overflow-hidden">
-                        <div className="h-full bg-[#FF7B7B] rounded-full transition-all"
-                          style={{ width: `${Math.min(100, Math.max(0, ((new Date().getTime()-new Date(challenge.start_date).getTime())/(challenge.total_days*86400000))*100))}%` }} />
-                      </div>
-                    </div>
-                  )}
-                </CardBrutal>
-              </motion.div>
-            )
-          })
-        )}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {/* 创建挑战弹窗 */}
-      <CreateChallengeModal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        onSuccess={handleCreateSuccess}
-      />
+      <CreateChallengeModal isOpen={showCreate} onClose={() => setShowCreate(false)} onSuccess={fetch} />
     </div>
   )
 }
