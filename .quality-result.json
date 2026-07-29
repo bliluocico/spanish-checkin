@@ -1,0 +1,157 @@
+{
+  "runId": "1785248482-22385",
+  "passed": true,
+  "securityScore": 9,
+  "commentScore": 3,
+  "robustnessScore": 7,
+  "totalScore": 19,
+  "hasHighRisk": false,
+  "highRiskDetails": [],
+  "timestamp": "2026-07-28T21:05:00+08:00",
+  "project": "西语学习打卡 Spanish Checkin",
+  "summary": "项目整体安全状况良好（9/10），代码健壮性不错（7/10），但注释严重不足（3/10）。无高危安全问题。总评 19/30，通过。优先改进：补充函数注释和魔法数字说明。",
+  "details": {
+    "security": {
+      "score": 9,
+      "maxScore": 10,
+      "findings": [
+        {
+          "severity": "green",
+          "type": "环境变量保护",
+          "description": ".env 文件已正确加入 .gitignore，Supabase anon key 不会泄露到 Git 仓库",
+          "status": "good"
+        },
+        {
+          "severity": "green",
+          "type": "注入防护",
+          "description": "无 eval()、innerHTML、document.write() 等危险操作，使用 Supabase SDK 参数化查询，无 SQL 注入风险",
+          "status": "good"
+        },
+        {
+          "severity": "green",
+          "type": "硬编码凭证",
+          "description": "代码中无硬编码密码、API 密钥、数据库连接串等敏感信息",
+          "status": "good"
+        },
+        {
+          "severity": "yellow",
+          "type": "控制台日志",
+          "description": "生产代码中留有 console.error 和 console.warn（共 5 处），虽然只打印了错误消息，但建议在正式上线前移除或替换为静默的错误上报",
+          "locations": ["src/supabase.js:7", "src/authContext.jsx:39,41,45", "src/pages/HomePage.jsx:63", "src/pages/ProfilePage.jsx:76"],
+          "suggestion": "可以保留，但如果你打算给朋友用，可以考虑用一个更优雅的错误展示方式代替控制台打印"
+        },
+        {
+          "severity": "green",
+          "type": "随机数用途",
+          "description": "Math.random() 出现 3 处，均用于非安全场景（用户名后缀随机字符串、星星动画位置），不涉及密码学安全",
+          "status": "info"
+        }
+      ]
+    },
+    "comments": {
+      "score": 3,
+      "maxScore": 10,
+      "coverage": "4.35%",
+      "coverageDetail": "50 行注释 / 1150 行有效代码（不含空行），远低于 30% 达标线和 15% 底线",
+      "findings": [
+        {
+          "severity": "red",
+          "type": "注释严重不足",
+          "description": "50 行注释对 1150 行代码，覆盖率仅 4.35%。大部分源文件完全没有注释（supabase.js、App.jsx、main.jsx、AuthGuard.jsx、Navbar.jsx 均为零注释）",
+          "suggestion": "至少给每个函数加一句话说明它做什么，给每个组件文件顶部加一行说明这个组件负责什么"
+        },
+        {
+          "severity": "red",
+          "type": "魔法数字未解释",
+          "description": "CheckinCard.jsx 中 60000、3600000、86400000 三个数字没有任何注释说明它们代表什么（毫秒→分钟→小时→天的换算）",
+          "locations": ["src/components/CheckinCard.jsx:9-11"],
+          "suggestion": "建议在这三行前面加一行注释：'// 把毫秒差转成分钟、小时、天数'，或者把数字写成常量 const MS_PER_MINUTE = 60000"
+        },
+        {
+          "severity": "yellow",
+          "type": "注释偏简单",
+          "description": "现有的 50 行注释大多是节标记（如'// 邮箱''// 密码''// 错误提示'），几乎没有解释'为什么这样做'",
+          "suggestion": "比如 authContext.jsx 中 ensureProfile 函数，可以加注释说明：'// 因为 Supabase 的数据库触发器偶尔会失败，所以前端这里做一层兜底，确保每个用户注册后一定有 profile 记录'"
+        },
+        {
+          "severity": "yellow",
+          "type": "术语未解释",
+          "description": "项目中使用了 'RLS（行级安全策略）'、'JWT'、'useCallback'、'framer-motion' 等术语，对一个只会 Excel 的会计同学来说较难理解",
+          "suggestion": "在 supabase-setup.sql 的 RLS 部分开头加一句大白话：'RLS 就像门禁——只有自己的打卡记录自己能改，朋友的打卡只能看不能改'"
+        },
+        {
+          "severity": "green",
+          "type": "已有好注释示例",
+          "description": "authContext.jsx:10 '确保用户有 profile 记录（防止触发器失败的情况）' 和 HomePage.jsx:41 '获取所有相关用户的 profile（单独查询，避免外键关联问题）' 这两条注释很好，解释了'为什么'",
+          "status": "good"
+        }
+      ]
+    },
+    "robustness": {
+      "score": 7,
+      "maxScore": 10,
+      "findings": [
+        {
+          "severity": "green",
+          "type": "空值保护",
+          "description": "大部分关键位置都有空值保护，如 ensureProfile 第一行 if (!userId) return，getValues 使用 ?. 和 || '' 兜底",
+          "status": "good"
+        },
+        {
+          "severity": "green",
+          "type": "错误处理",
+          "description": "关键异步操作（handleSubmit、fetchCheckins、signIn/signUp）都有 try-catch 包裹，且有 finally 恢复 loading 状态；HomePage 有'重试'按钮",
+          "status": "good"
+        },
+        {
+          "severity": "green",
+          "type": "命名规范",
+          "description": "变量和函数命名整体清晰（timeAgo、fetchCheckins、ensureProfile、trimmedContent），没有出现 a、b、temp 这种无意义变量名",
+          "status": "good"
+        },
+        {
+          "severity": "green",
+          "type": "文件组织",
+          "description": "components / pages / styles 三层分离合理，目录结构清晰，无死代码",
+          "status": "good"
+        },
+        {
+          "severity": "yellow",
+          "type": "Profile 加载缺错误处理",
+          "description": "ProfilePage.jsx 中的 loadProfile 函数没有 try-catch，如果 Supabase 查询抛出异常会导致未捕获的错误",
+          "location": "src/pages/ProfilePage.jsx:14-67",
+          "suggestion": "给 loadProfile 函数体包一个 try-catch，在 catch 中提示'加载个人信息失败'"
+        },
+        {
+          "severity": "yellow",
+          "type": "CheckinCard 未校验输入结构",
+          "description": "CheckinCard 组件直接访问 checkin.profiles?.nickname 和 checkin.created_at，如果传入的 checkin 是 null 会直接报错白屏",
+          "location": "src/components/CheckinCard.jsx:21-76",
+          "suggestion": "在函数开头加一行：if (!checkin) return null; 防止白屏"
+        },
+        {
+          "severity": "yellow",
+          "type": "React 中 Math.random() 放在 render 里",
+          "description": "CheckinForm.jsx 的星星动画中 Math.random() 写在组件渲染函数里（而非 useEffect 或 useMemo），每次组件重渲染都会产生新的随机位置，可能导致星星闪跳",
+          "location": "src/components/CheckinForm.jsx:132-133",
+          "suggestion": "把随机位置的计算放到 useMemo 中，或者用 React 的 key 机制确保只在首次渲染时生成"
+        }
+      ]
+    },
+    "scannedFiles": 12,
+    "scannedFileList": [
+      "src/supabase.js",
+      "src/App.jsx",
+      "src/authContext.jsx",
+      "src/main.jsx",
+      "src/components/AuthGuard.jsx",
+      "src/components/CheckinCard.jsx",
+      "src/components/CheckinForm.jsx",
+      "src/components/Navbar.jsx",
+      "src/pages/HomePage.jsx",
+      "src/pages/LoginPage.jsx",
+      "src/pages/ProfilePage.jsx",
+      "src/styles/global.css"
+    ]
+  }
+}

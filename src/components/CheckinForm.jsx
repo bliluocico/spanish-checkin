@@ -1,34 +1,87 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Clock, BookOpen, Sparkles } from 'lucide-react'
+import { X, Clock, BookOpen, Sparkles, Image, Trash2, Trophy } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 
 const MAX_CONTENT_LENGTH = 500
 const MIN_DURATION = 1
 const MAX_DURATION = 1440
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
-export default function CheckinForm({ isOpen, onClose, onSuccess }) {
+export default function CheckinForm({ isOpen, onClose, onSuccess, activeChallenge }) {
   const { user } = useAuth()
   const [content, setContent] = useState('')
   const [duration, setDuration] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const handleClose = useCallback(() => {
     setContent('')
     setDuration('')
     setError('')
     setShowSuccess(false)
+    setImageFile(null)
+    setImagePreview(null)
     onClose()
   }, [onClose])
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError('只支持 JPG、PNG、GIF、WebP 格式的图片')
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError('图片不能超过 5MB')
+      return
+    }
+
+    setImageFile(file)
+    const reader = new FileReader()
+    reader.onload = (ev) => setImagePreview(ev.target.result)
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const uploadImage = async () => {
+    if (!imageFile) return null
+
+    const fileName = `${user.id}/${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const { data, error } = await supabase.storage
+      .from('checkin-images')
+      .upload(fileName, imageFile, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (error) throw error
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('checkin-images')
+      .getPublicUrl(data.path)
+
+    return publicUrl
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    // 验证
     const trimmedContent = content.trim()
     if (!trimmedContent) {
       setError('请填写今天学了什么内容')
@@ -50,17 +103,28 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
     }
 
     setLoading(true)
+    setUploading(true)
     try {
+      // 先上传图片（如果有）
+      let imageUrl = null
+      if (imageFile) {
+        imageUrl = await uploadImage()
+      }
+
+      setUploading(false)
+
+      // 创建打卡记录
       const { error: insertError } = await supabase.from('checkins').insert({
         user_id: user.id,
         content: trimmedContent,
         duration_minutes: minutes,
         checkin_date: new Date().toISOString().split('T')[0],
+        image_url: imageUrl,
+        challenge_id: activeChallenge?.id || null,
       })
 
       if (insertError) throw insertError
 
-      // 成功动画
       setShowSuccess(true)
       setTimeout(() => {
         handleClose()
@@ -70,6 +134,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
       setError(err.message || '提交失败，请稍后再试')
     } finally {
       setLoading(false)
+      setUploading(false)
     }
   }
 
@@ -77,7 +142,6 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          {/* 背景遮罩 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -86,7 +150,6 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
             onClick={handleClose}
           />
 
-          {/* 弹窗卡片 */}
           <motion.div
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
@@ -95,7 +158,6 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
             className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-[0_-4px_24px_rgba(255,123,123,0.15)]"
           >
             {showSuccess ? (
-              /* 成功动画 */
               <div className="flex flex-col items-center py-10">
                 <motion.div
                   initial={{ scale: 0 }}
@@ -119,9 +181,8 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
                   transition={{ delay: 0.5 }}
                   className="text-[#8B7355]"
                 >
-                  打卡成功 ✨
+                  {activeChallenge ? '挑战打卡成功！' : '打卡成功'} ✨
                 </motion.p>
-                {/* 星星动画 */}
                 {[...Array(6)].map((_, i) => (
                   <motion.div
                     key={i}
@@ -134,10 +195,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
                     }}
                     transition={{ delay: 0.2 + i * 0.08, duration: 1.2 }}
                     className="absolute text-2xl"
-                    style={{
-                      top: '40%',
-                      left: '50%',
-                    }}
+                    style={{ top: '40%', left: '50%' }}
                   >
                     {['⭐', '🌟', '✨', '💫', '🌺', '📚'][i]}
                   </motion.div>
@@ -145,7 +203,6 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
               </div>
             ) : (
               <>
-                {/* 标题栏 */}
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-xl font-extrabold text-[#4A3728] flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-[#FF7B7B]" />
@@ -158,6 +215,16 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
                     <X className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* 挑战关联提示 */}
+                {activeChallenge && (
+                  <div className="mb-4 flex items-center gap-2 bg-[#FFF3E0] rounded-xl px-3 py-2.5">
+                    <Trophy className="w-4 h-4 text-[#FF9800]" />
+                    <span className="text-sm font-semibold text-[#8B7355]">
+                      正在挑战：{activeChallenge.title}
+                    </span>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* 学习内容 */}
@@ -199,6 +266,45 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
                     </div>
                   </div>
 
+                  {/* 图片上传 */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#4A3728] mb-2">
+                      🖼️ 添加图片（可选）
+                    </label>
+                    {imagePreview ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={imagePreview}
+                          alt="预览"
+                          className="w-24 h-24 object-cover rounded-2xl border-2 border-[#FFE8D0]"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-3 bg-[#FFF8F0] border-2 border-dashed border-[#E8D5C4] hover:border-[#FF7B7B] rounded-2xl text-[#C4A882] hover:text-[#FF7B7B] transition-all duration-200"
+                      >
+                        <Image className="w-4 h-4" />
+                        <span className="text-sm">点击选择图片</span>
+                      </button>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </div>
+
                   {/* 错误提示 */}
                   {error && (
                     <motion.p
@@ -222,7 +328,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess }) {
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        打卡
+                        {uploading ? '上传中...' : '打卡'}
                       </>
                     )}
                   </motion.button>

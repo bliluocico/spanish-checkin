@@ -4,6 +4,8 @@ import AuthGuard from './components/AuthGuard'
 import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
+import ChallengeListPage from './pages/ChallengeListPage'
+import ChallengeDetailPage from './pages/ChallengeDetailPage'
 import Navbar from './components/Navbar'
 import { AnimatePresence } from 'framer-motion'
 
@@ -28,6 +30,8 @@ export default function App() {
           <Routes>
             <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
             <Route path="/" element={<AuthGuard><HomePage /></AuthGuard>} />
+            <Route path="/challenges" element={<AuthGuard><ChallengeListPage /></AuthGuard>} />
+            <Route path="/challenges/:id" element={<AuthGuard><ChallengeDetailPage /></AuthGuard>} />
             <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
           </Routes>
         </div>
