@@ -80,7 +80,7 @@ export default function ChallengeDetailPage() {
     try {
       await supabase.from('checkins').insert({
         user_id: user.id, content: ckContent.trim(), duration_minutes: m,
-        checkin_date: new Date().toISOString().split('T')[0], challenge_id: id,
+        checkin_date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`, challenge_id: id,
       })
       setCkContent(''); setCkDuration(''); fetch()
     } catch (err) { setCkError(err.message) }

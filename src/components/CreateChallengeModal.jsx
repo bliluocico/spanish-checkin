@@ -41,7 +41,7 @@ export default function CreateChallengeModal({ isOpen, onClose, onSuccess }) {
       const { data: ch, error: ce } = await supabase.from('challenges').insert({
         creator_id: user.id, type, title: title.trim(), description: desc.trim(),
         goal_value: g, total_days: d, deadline_time: deadline,
-        start_date: new Date().toISOString().split('T')[0], pending: true,
+        start_date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`, pending: true,
       }).select().single()
       if (ce) throw ce
 

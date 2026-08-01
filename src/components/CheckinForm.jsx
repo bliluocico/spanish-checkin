@@ -47,7 +47,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
       const imageUrl = imgFile ? await upload() : null
       const { error: insertErr } = await supabase.from('checkins').insert({
         user_id: user.id, content: content.trim(), duration_minutes: m,
-        checkin_date: new Date().toISOString().split('T')[0],
+        checkin_date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`,
         image_url: imageUrl, challenge_id: activeChallenge?.id || null,
       })
       if (insertErr) throw insertErr

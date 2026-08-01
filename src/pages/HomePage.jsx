@@ -35,6 +35,8 @@ export default function HomePage() {
   const [err, setErr] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showAll, setShowAll] = useState(true)
+  const [showFriend, setShowFriend] = useState(false) // 只看对方
+  const [expanded, setExpanded] = useState(false) // 折叠更早记录
   const [friendStreak, setFriendStreak] = useState(0)
   const [myStreak, setMyStreak] = useState(0)
   const [reminderCount, setReminderCount] = useState(0)
@@ -106,9 +108,20 @@ export default function HomePage() {
   }
 
   // 筛选 + 分组
-  const filtered = useMemo(() =>
-    showAll ? checkins : checkins.filter(c => c.user_id === user?.id)
-  , [checkins, showAll, user])
+  const filtered = useMemo(() => {
+    if (showFriend) return checkins.filter(c => c.user_id !== user?.id)
+    if (!showAll) return checkins.filter(c => c.user_id === user?.id)
+    return checkins
+  }, [checkins, showAll, showFriend, user])
+
+  const recentSet = useMemo(() => {
+    const s = new Set()
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i)
+      s.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)
+    }
+    return s
+  }, [])
 
   const groups = useMemo(() => {
     const byDate = {}
@@ -116,21 +129,21 @@ export default function HomePage() {
       if (!byDate[c.checkin_date]) byDate[c.checkin_date] = []
       byDate[c.checkin_date].push(c)
     })
-    // 转为数组，按日期倒序
     const dates = Object.keys(byDate).sort((a, b) => b.localeCompare(a))
-    // 计算月份边界
-    let lastMonth = ''
-    const result = []
-    dates.forEach(date => {
-      const m = date.substring(0, 7) // YYYY-MM
-      if (m !== lastMonth) {
-        result.push({ type: 'month', key: 'm-' + m, label: monthLabel(date) })
-        lastMonth = m
-      }
-      result.push({ type: 'date', key: 'd-' + date, date, ...dateLabel(date), checkins: byDate[date] })
-    })
-    return result
-  }, [filtered])
+    const recentDates = []; const olderDates = []
+    dates.forEach(d => { (recentSet.has(d) ? recentDates : olderDates).push(d) })
+
+    const build = (list) => {
+      let lastMonth = ''; const r = []
+      list.forEach(date => {
+        const m = date.substring(0, 7)
+        if (m !== lastMonth) { r.push({ type: 'month', key: 'm-'+m, label: monthLabel(date) }); lastMonth = m }
+        r.push({ type: 'date', key: 'd-'+date, date, ...dateLabel(date), checkins: byDate[date] })
+      })
+      return r
+    }
+    return { recent: build(recentDates), older: build(olderDates) }
+  }, [filtered, recentSet])
 
   return (
     <div className="page">
@@ -154,10 +167,12 @@ export default function HomePage() {
 
       {/* 筛选栏 */}
       <div className="flex items-center gap-2 px-4 pb-3" style={{ background: 'rgba(251,247,242,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid var(--line)' }}>
-        <button onClick={() => setShowAll(false)} className={`btn btn-sm ${!showAll ? 'btn-primary' : 'btn-ghost'}`}>只看自己</button>
-        <button onClick={() => setShowAll(true)} className={`btn btn-sm ${showAll ? 'btn-primary' : 'btn-ghost'}`}>一起看</button>
-        {showAll && <span className="text-xs" style={{ color: 'var(--sage)', marginLeft: 'auto' }}><Users size={14} className="inline" /> 对比模式</span>}
-        {!showAll && <span className="text-xs" style={{ color: 'var(--ink-light)', marginLeft: 'auto' }}>📝 个人模式</span>}
+        <button onClick={() => { setShowAll(true); setShowFriend(false) }} className={`btn btn-sm ${showAll && !showFriend ? 'btn-primary' : 'btn-ghost'}`}>一起看</button>
+        <button onClick={() => { setShowAll(false); setShowFriend(false) }} className={`btn btn-sm ${!showAll && !showFriend ? 'btn-primary' : 'btn-ghost'}`}>只看自己</button>
+        <button onClick={() => { setShowAll(false); setShowFriend(true) }} className={`btn btn-sm ${showFriend ? 'btn-primary' : 'btn-ghost'}`}>只看对方</button>
+        {showAll && !showFriend && <span className="text-xs" style={{ color: 'var(--sage)', marginLeft: 'auto' }}><Users size={14} className="inline" /> 对比</span>}
+        {!showAll && !showFriend && <span className="text-xs" style={{ color: 'var(--ink-light)', marginLeft: 'auto' }}>📝 个人</span>}
+        {showFriend && <span className="text-xs" style={{ color: 'var(--gold-dark)', marginLeft: 'auto' }}>🌸 好友</span>}
       </div>
 
       <style>{`
@@ -187,7 +202,7 @@ export default function HomePage() {
                 <Users size={16} /><span className="badge badge-sage">你和朋友的学习动态</span>
               </div>
             )}
-            {groups.map((g, gi) => {
+            {[...groups.recent, ...(expanded ? groups.older : [])].map((g, gi) => {
               if (g.type === 'month') {
                 return (
                   <div key={g.key} className="flex items-center gap-3 mt-2 mb-1 anim-up" style={{ animationDelay: '0s' }}>
@@ -214,6 +229,13 @@ export default function HomePage() {
                 </div>
               )
             })}
+            {groups.older.length > 0 && (
+              <div className="text-center mt-1 mb-2">
+                <button onClick={() => setExpanded(!expanded)} className="btn btn-ghost btn-sm">
+                  {expanded ? '收起更早记录 ▲' : `展开更早记录 (${groups.older.filter(g => g.type === 'date').length} 天) ▼`}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
