@@ -65,10 +65,10 @@ export default function Heatmap({ checkins, onPickDate }) {
 
   const color = (count, inRange) => {
     if (!inRange) return 'transparent'
-    if (count === 0) return '#F0EBE4'
-    if (count === 1) return '#D8C9B0'
-    if (count === 2) return '#B8956A'
-    return '#7A5C33'
+    if (count === 0) return '#EBE6DF'
+    if (count === 1) return '#A8C6A0'
+    if (count === 2) return '#5E9E63'
+    return '#2E6B33'
   }
 
   const fmtMins = (m) => m >= 60 ? `${Math.floor(m/60)}时${m%60}分` : `${m}分`
@@ -78,10 +78,10 @@ export default function Heatmap({ checkins, onPickDate }) {
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-bold" style={{ color: 'var(--ink)' }}>📊 最近 35 天打卡</span>
         <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--ink-light)' }}>
-          少<span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#F0EBE4', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#D8C9B0', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#B8956A', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#7A5C33', margin: '0 2px' }} />多
+          少<span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#EBE6DF', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#A8C6A0', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#5E9E63', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#2E6B33', margin: '0 2px' }} />多
         </div>
       </div>
 
