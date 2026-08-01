@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CheckinCard from '../components/CheckinCard'
 import CheckinForm from '../components/CheckinForm'
+import Heatmap from '../components/Heatmap'
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -185,6 +186,13 @@ export default function HomePage() {
         .date-normal { color: var(--ink-light); font-weight: 600; }
       `}</style>
 
+      <div className="px-4 pt-3">
+        <Heatmap checkins={checkins} onPickDate={(d) => {
+          // 滚动到该天的分组
+          document.getElementById('group-' + d)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }} />
+      </div>
+
       <div className="flex flex-col gap-3 mt-3">
         {loading && checkins.length === 0 ? (
           <div className="empty"><div className="empty-icon">📚</div><p className="empty-sub">加载中...</p></div>
@@ -215,13 +223,14 @@ export default function HomePage() {
                 )
               }
               // date group
+              const dayMins = g.checkins.reduce((s, c) => s + (c.duration_minutes || 0), 0)
               return (
-                <div key={g.key}>
+                <div key={g.key} id={`group-${g.date}`} className="scroll-mt-20">
                   <div className={`flex items-center gap-2 mb-2 anim-up ${g.cls}`} style={{ fontSize: '0.8rem', animationDelay: `${gi * 0.02}s` }}>
                     <CalendarDays size={14} />
                     <span>{g.full}</span>
                     <span className="text-xs" style={{ color: 'var(--ink-light)', fontWeight: 400 }}>
-                      {g.checkins.length} 条记录
+                      {g.checkins.length} 条 · 共 {dayMins >= 60 ? `${Math.floor(dayMins/60)}时${dayMins%60}分` : `${dayMins}分`}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">

@@ -176,12 +176,15 @@ export default function ChallengeDetailPage() {
         </div>
       )}
 
-      {/* 结果 */}
+      {/* 结果 — 回顾模式 */}
       {challenge.status === 'completed' && (
         <div className="text-center py-6 anim-up">
           {challenge.winner_id === user.id ? <CervantesBadge size={100} animated showText />
           : challenge.failed_user_id === user.id ? <DonQuixoteBadge size={100} animated showText />
           : <BorgesBadge size={100} animated showText />}
+          <p className="text-xs mt-2" style={{ color: 'var(--ink-light)' }}>
+            📁 挑战已结束 · 回顾模式（不可打卡）
+          </p>
         </div>
       )}
 
@@ -212,8 +215,8 @@ export default function ChallengeDetailPage() {
           </div>
         )}
 
-        {/* 内嵌打卡 — 仅在已接受时显示 */}
-        {canView && (
+        {/* 内嵌打卡 — 仅进行中且已接受时显示 */}
+        {canView && challenge.status === 'active' && (
           <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><Sparkles size={14} style={{ color: 'var(--gold)' }} />今日打卡</h3>
             {checkins.some(c => c.user_id === user.id && c.checkin_date ===

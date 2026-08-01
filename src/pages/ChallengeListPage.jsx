@@ -11,6 +11,7 @@ export default function ChallengeListPage() {
   const [challenges, setChallenges] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
+  const [tab, setTab] = useState('active') // 'active' | 'history'
 
   const fetch = useCallback(async () => {
     if (!user) return
@@ -72,14 +73,25 @@ export default function ChallengeListPage() {
         <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm">新建</button>
       </div>
 
+      {/* 双 Tab */}
+      <div className="flex gap-2 px-4 pb-3" style={{ background: 'rgba(251,247,242,0.85)', backdropFilter: 'blur(12px)', borderBottom: '1px solid var(--line)' }}>
+        <button onClick={() => setTab('active')} className={`btn btn-sm ${tab === 'active' ? 'btn-primary' : 'btn-ghost'}`}>进行中</button>
+        <button onClick={() => setTab('history')} className={`btn btn-sm ${tab === 'history' ? 'btn-primary' : 'btn-ghost'}`}>挑战记录</button>
+        {tab === 'active' && <span className="text-xs self-center ml-auto" style={{ color: 'var(--ink-light)' }}>{challenges.filter(c => c.status !== 'completed').length} 个进行中</span>}
+        {tab === 'history' && <span className="text-xs self-center ml-auto" style={{ color: 'var(--ink-light)' }}>{challenges.filter(c => c.status === 'completed').length} 条记录</span>}
+      </div>
+
       <div className="flex flex-col gap-3 mt-3">
         {loading ? <div className="empty"><div className="empty-icon">🏆</div><p className="empty-sub">加载中...</p></div>
-        : challenges.length === 0 ? (
+        : challenges.filter(c => tab === 'active' ? c.status !== 'completed' : c.status === 'completed').length === 0 ? (
           <div className="empty">
-            <div className="empty-icon">🎯</div><p className="empty-title">还没有挑战</p><p className="empty-sub">创建一个打卡挑战，邀请好友一起！</p>
-            <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm mt-3">创建第一个挑战</button>
+            <div className="empty-icon">🎯</div>
+            {tab === 'active'
+              ? <><p className="empty-title">还没有进行中的挑战</p><p className="empty-sub">创建一个打卡挑战，邀请好友一起！</p></>
+              : <><p className="empty-title">还没有完成的挑战</p><p className="empty-sub">完成一个挑战后，记录会保存在这里</p></>}
+            {tab === 'active' && <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm mt-3">创建第一个挑战</button>}
           </div>
-        ) : challenges.map((c, i) => {
+        ) : challenges.filter(c => tab === 'active' ? c.status !== 'completed' : c.status === 'completed').map((c, i) => {
           const b = badge(c)
           const end = new Date(c.start_date); end.setDate(end.getDate() + c.total_days)
           return (
