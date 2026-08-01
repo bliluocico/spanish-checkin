@@ -40,20 +40,24 @@ export default function Heatmap({ checkins, onPickDate }) {
       const dayMins = checkins.filter(c => c.checkin_date === dateStr).reduce((s, c) => s + (c.duration_minutes || 0), 0)
       currentWeekMins += dayMins
 
-      if (isWeekEnd) {
+      const flushWeek = (weekEndDate) => {
         if (currentWeekDays > 0 || currentWeekMins > 0) {
-          const weekStart = new Date(d); weekStart.setDate(d.getDate() - 6)
+          const weekStart = new Date(weekEndDate); weekStart.setDate(weekStart.getDate() - 6)
           weekStats.push({
-            label: `${weekStart.getMonth()+1}/${weekStart.getDate()} - ${d.getMonth()+1}/${d.getDate()}`,
+            label: `${weekStart.getMonth()+1}/${weekStart.getDate()} - ${weekEndDate.getMonth()+1}/${weekEndDate.getDate()}`,
             days: currentWeekDays, mins: currentWeekMins,
           })
         }
         currentWeekDays = 0; currentWeekMins = 0
       }
 
+      if (isWeekEnd) flushWeek(d)
+
       // 每 7 天一组
       if (week.length === 7) { cells.push(week); week = [] }
     }
+    // 最后一周（未到周日）也结算
+    flushWeek(today)
     if (week.length > 0) cells.push(week)
 
     return { cells, weekStats }
@@ -61,10 +65,10 @@ export default function Heatmap({ checkins, onPickDate }) {
 
   const color = (count, inRange) => {
     if (!inRange) return 'transparent'
-    if (count === 0) return 'rgba(184,149,106,0.08)'
-    if (count === 1) return 'rgba(184,149,106,0.3)'
-    if (count === 2) return 'rgba(184,149,106,0.6)'
-    return 'var(--gold-dark)'
+    if (count === 0) return '#F0EBE4'
+    if (count === 1) return '#D8C9B0'
+    if (count === 2) return '#B8956A'
+    return '#7A5C33'
   }
 
   const fmtMins = (m) => m >= 60 ? `${Math.floor(m/60)}时${m%60}分` : `${m}分`
@@ -74,10 +78,10 @@ export default function Heatmap({ checkins, onPickDate }) {
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-bold" style={{ color: 'var(--ink)' }}>📊 最近 35 天打卡</span>
         <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--ink-light)' }}>
-          少<span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(184,149,106,0.08)', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(184,149,106,0.3)', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'rgba(184,149,106,0.6)', margin: '0 2px' }} />
-          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: 'var(--gold-dark)', margin: '0 2px' }} />多
+          少<span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#F0EBE4', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#D8C9B0', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#B8956A', margin: '0 2px' }} />
+          <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, background: '#7A5C33', margin: '0 2px' }} />多
         </div>
       </div>
 
