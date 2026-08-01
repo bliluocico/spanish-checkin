@@ -7,6 +7,7 @@ import ProfilePage from './pages/ProfilePage'
 import ChallengeListPage from './pages/ChallengeListPage'
 import ChallengeDetailPage from './pages/ChallengeDetailPage'
 import Navbar from './components/Navbar'
+import ErrorBoundary from './components/ErrorBoundary'
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -24,15 +25,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--parchment)' }}>
-      <div className="flex-1">
-        <Routes>
-          <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
-          <Route path="/" element={<AuthGuard><HomePage /></AuthGuard>} />
-          <Route path="/challenges" element={<AuthGuard><ChallengeListPage /></AuthGuard>} />
-          <Route path="/challenges/:id" element={<AuthGuard><ChallengeDetailPage /></AuthGuard>} />
-          <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
-        </Routes>
-      </div>
+      <ErrorBoundary>
+        <div className="flex-1">
+          <Routes>
+            <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+            <Route path="/" element={<AuthGuard><HomePage /></AuthGuard>} />
+            <Route path="/challenges" element={<AuthGuard><ChallengeListPage /></AuthGuard>} />
+            <Route path="/challenges/:id" element={<AuthGuard><ChallengeDetailPage /></AuthGuard>} />
+            <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
+          </Routes>
+        </div>
+      </ErrorBoundary>
       {user && <Navbar />}
     </div>
   )
