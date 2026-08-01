@@ -23,13 +23,15 @@ const tzNote = `(当前时区 UTC+${-new Date().getTimezoneOffset() / 60})`
 /* ============================================================
  * 1. HomePage.jsx 连击计算（L76-93 逐字抽取，含 L79-80 的 toISOString）
  * ============================================================ */
+// 修复后版本（对应 HomePage L33 localDate）
+function localDateStr2(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 function calcStreak(checkinDates) {
   let s = 0
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const set = new Set(checkinDates)
   let cur = new Date(today)
-  if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate() - 1)
-  while (set.has(cur.toISOString().split('T')[0])) { s++; cur.setDate(cur.getDate() - 1) }
+  if (!set.has(localDateStr2(cur))) cur.setDate(cur.getDate() - 1)
+  while (set.has(localDateStr2(cur))) { s++; cur.setDate(cur.getDate() - 1) }
   return s
 }
 
@@ -214,16 +216,17 @@ test(`[日期解析] 裸 new Date('2026-08-01') 被当成 UTC 零点，本地时
  *    场景：创建者 A 邀请好友 B、C。B 先接受 → challenges.pending=false
  *    → C 的“接受”横幅与打卡表单全部消失，永远卡死
  * ============================================================ */
-function bannerVisible(challengePending, myStatus) { return challengePending && myStatus === 'pending' }
+// 修复后版本：isPending 只看自己的 participant.accepted（ChallengeDetailPage L135）
+function bannerVisible(challengePending, myStatus) { return myStatus === 'pending' }
 function canViewProgress(myStatus) { return myStatus === 'accepted' }
 
-test('[挑战状态机] 好友C尚未接受时，应仍能收到“接受”按钮（ChallengeDetailPage L136-138）', () => {
-  // 模拟：B 已接受，服务端把挑战 pending 置为 false（accept() 内 L76）
+test('[挑战状态机] 好友C尚未接受时，应仍能收到“接受”按钮（ChallengeDetailPage L135 修复后）', () => {
+  // 修复后：不再依赖挑战的 pending 字段，B 接受与否不影响 C
   const challengePending = false
   const cStatus = 'pending'
   const hasBanner = bannerVisible(challengePending, cStatus)
   const canView = canViewProgress(cStatus)
-  // 正确行为：C 仍应有接受入口
+  // 正确行为：C 仍有接受入口
   assert.equal(hasBanner || canView, true, `C 卡在 pending，横幅消失(hasBanner=${hasBanner})且不能看进度(canView=${canView})，C 永远无法接受挑战`)
 })
 
@@ -237,13 +240,14 @@ test('[挑战状态机] 创建者自动 accepted 可正常打卡（对照组）'
  *    插入/更新用的字段是 accepted（CreateChallengeModal L51），
  *    查询却 select('status') —— 恒为 undefined，人数包含未接受的好友
  * ============================================================ */
-test('[挑战列表] 参与人数应只统计已接受者（ChallengeListPage L29 vs L104）', () => {
-  // 模拟 ListPage 实际拿到的数据：只有 status 字段，没有 accepted
-  const parts = [{ challenge_id: '1', user_id: 'B', status: null }] // 好友 B 还没接受（accepted=false）
-  const displayCount = parts.length + 1 // 页面显示 L104
-  const realAccepted = parts.filter(p => p.accepted === true).length + 1 // 真实应显示
-  assert.equal(displayCount, realAccepted,
-    `页面显示 ${displayCount} 人，实际只有 ${realAccepted} 人 —— select 用了不存在的 status 字段，accepted 取不到`)
+test('[挑战列表] 参与人数应只统计已接受者（ChallengeListPage 修复后：select accepted + filter）', () => {
+  // 修复后：select('accepted')，人数 = accepted===true 的好友 + 创建者
+  const parts = [{ challenge_id: '1', user_id: 'B', accepted: false }] // B 未接受
+  const displayCount = parts.filter(p => p.accepted).length + 1
+  assert.equal(displayCount, 1, `B 未接受却显示 ${displayCount} 人`)
+  // B 接受后
+  const parts2 = [{ challenge_id: '1', user_id: 'B', accepted: true }]
+  assert.equal(parts2.filter(p => p.accepted).length + 1, 2)
 })
 
 /* ============================================================
