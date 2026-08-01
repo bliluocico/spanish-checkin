@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Plus, Users, RefreshCw, CalendarDays } from 'lucide-react'
+import { Plus, Users, RefreshCw, CalendarDays, Bell } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CheckinCard from '../components/CheckinCard'
