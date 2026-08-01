@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CalendarDays, Clock, Target, Sparkles, BookOpen, Pen, Timer, CheckCircle, XCircle, Users } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Clock, Target, Sparkles, BookOpen, Pen, Timer, CheckCircle, XCircle, Users, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CervantesBadge from '../components/CervantesBadge'
@@ -29,6 +29,8 @@ export default function ChallengeDetailPage() {
   const [ckDuration, setCkDuration] = useState('')
   const [ckError, setCkError] = useState('')
   const [ckLoading, setCkLoading] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  const [editText, setEditText] = useState('')
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -109,6 +111,22 @@ export default function ChallengeDetailPage() {
       fetch()
     } catch (err) { setCkError(err.message) }
     finally { setCkLoading(false) }
+  }
+
+  const deleteCheckin = async (checkinId) => {
+    if (!confirm('确定删除这条打卡？')) return
+    await supabase.from('checkins').delete().eq('id', checkinId)
+    fetch()
+  }
+
+  const editCheckin = (c) => {
+    setEditingId(c.id); setEditText(c.content)
+  }
+
+  const saveEdit = async () => {
+    if (!editText.trim()) return
+    await supabase.from('checkins').update({ content: editText.trim() }).eq('id', editingId)
+    setEditingId(null); fetch()
   }
 
   if (loading) return <div className="page flex items-center justify-center"><div className="empty"><div className="empty-icon">🏆</div><p className="empty-sub">加载中...</p></div></div>
@@ -253,12 +271,26 @@ export default function ChallengeDetailPage() {
               const isPoetry = (() => { try { const d = JSON.parse(c.content); return d.t === 'poetry' } catch { return false } })()
               const other = c.user_id !== user.id
               return (
-                <div key={c.id} className="card" style={{ borderLeft: other ? '3px solid var(--sage)' : '3px solid var(--gold)' }}>
+                <div key={c.id} className="card" style={{ borderLeft: other ? '3px solid var(--sage)' : '3px solid var(--gold)', position: 'relative' }}>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-bold">{other ? '🌸 好友' : '📝 我'}</span>
                     <span className="text-xs" style={{ color: 'var(--ink-light)' }}>{c.checkin_date.slice(5)}</span>
                   </div>
-                  {isPoetry ? <PoetryCard data={JSON.parse(c.content)} /> : <p className="text-sm whitespace-pre-wrap">{c.content}</p>}
+                  {editingId === c.id ? (
+                    <div className="flex flex-col gap-2">
+                      <textarea className="input" rows={4} value={editText} onChange={e => setEditText(e.target.value)} />
+                      <div className="flex gap-2 justify-end">
+                        <button className="btn btn-ghost btn-sm" onClick={() => setEditingId(null)}>取消</button>
+                        <button className="btn btn-primary btn-sm" onClick={saveEdit}>保存</button>
+                      </div>
+                    </div>
+                  ) : isPoetry ? <PoetryCard data={JSON.parse(c.content)} /> : <p className="text-sm whitespace-pre-wrap">{c.content}</p>}
+                  {!other && editingId !== c.id && (
+                    <div className="flex gap-2 justify-end mt-3" style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => editCheckin(c)}><Pencil size={13} />编辑</button>
+                      <button className="btn btn-ghost btn-sm" style={{ color: 'var(--wine)' }} onClick={() => deleteCheckin(c.id)}><Trash2 size={13} />删除</button>
+                    </div>
+                  )}
                 </div>
               )
             })}
