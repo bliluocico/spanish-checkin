@@ -67,7 +67,7 @@ export default function ChallengeListPage() {
   }
 
   return (
-    <div className="page">
+    <div className="page bg-washi">
       <div className="header-bar">
         <Asanoha size={28} color="var(--sage)" opacity={0.7} />
         <div className="flex-1"><h1 className="header-title font-playfair" style={{ fontSize: '1.1rem' }}>打卡挑战</h1><p className="header-sub">和好朋友一起坚持学习</p></div>

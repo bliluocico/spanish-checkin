@@ -27,7 +27,7 @@ html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
 
 body {
   font-family: 'Noto Serif SC', 'Nunito', 'PingFang SC', 'Microsoft YaHei', serif;
-  background: var(--parchment);
+  background: linear-gradient(165deg, #F7F3EC 0%, #F2EDE3 50%, #EDE7DB 100%);
   color: var(--ink);
   min-height: 100dvh;
   overflow-x: hidden;
@@ -38,6 +38,14 @@ body {
 .font-playfair { font-family: 'Playfair Display', 'Noto Serif SC', serif; }
 .font-cormorant { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
 .font-amatic { font-family: 'Amatic SC', 'Noto Serif SC', cursive; }
+
+/* ═══ 和风页面背景 ═══ */
+/* 全站统一：和纸米白 */
+.bg-washi {
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, rgba(255,250,240,0.9), transparent 60%),
+    linear-gradient(165deg, #F7F3EC 0%, #F2EDE3 50%, #EDE7DB 100%);
+}
 
 #root {
   min-height: 100dvh;
@@ -73,10 +81,11 @@ input, textarea, button { font-family: inherit; }
 
 /* ═══════════════ 卡片系统 ═══════════════ */
 .card {
-  background: var(--white); border-radius: var(--radius);
+  background: rgba(255,255,255,0.88); border-radius: var(--radius);
   box-shadow: var(--shadow); padding: 20px;
   border: 1px solid var(--line);
   transition: box-shadow 0.2s;
+  backdrop-filter: blur(4px);
 }
 .card:hover { box-shadow: var(--shadow-hover); }
 .card-ink { border-left: 3px solid var(--gold); }
@@ -95,7 +104,7 @@ textarea.input { resize: vertical; min-height: 80px; }
 .page { padding: 16px 16px 96px; min-height: 100dvh; }
 .header-bar {
   position: sticky; top: 0; z-index: 30;
-  background: rgba(251,247,242,0.85); backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.55); backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line); padding: 16px;
   display: flex; align-items: center; gap: 12px;
 }

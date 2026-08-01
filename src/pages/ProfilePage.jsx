@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { LogOut, BookOpen, Clock, TrendingUp, Award, Medal } from 'lucide-react'
+import { LogOut, BookOpen, Clock, TrendingUp, Award, Medal, Pencil } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
 import DonQuixoteBadge from '../components/DonQuixoteBadge'
 import { Kikko } from '../components/WafuuPatterns'
+import GreekAvatar, { AVATAR_SERIES } from '../components/GreekAvatars'
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -14,13 +15,19 @@ export default function ProfilePage() {
   const [cs, setCs] = useState({ wins: 0, loss: 0, draw: 0 })
   const [completed, setCompleted] = useState([])
   const [nickname, setNickname] = useState('')
+  const [avatar, setAvatar] = useState('achilles')
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
+  const [avatarSeries, setAvatarSeries] = useState('iliad')
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) return
     ;(async () => {
-      const { data: prof } = await supabase.from('profiles').select('nickname').eq('id', user.id).maybeSingle()
+      const { data: prof } = await supabase.from('profiles').select('nickname, avatar').eq('id', user.id).maybeSingle()
       setNickname(prof?.nickname || user.email?.split('@')[0] || '未知')
+      if (prof?.avatar) setAvatar(prof.avatar)
 
       const { data: checks } = await supabase.from('checkins').select('duration_minutes,checkin_date').eq('user_id', user.id).order('checkin_date', { ascending: false })
       if (checks) {
@@ -47,7 +54,7 @@ export default function ProfilePage() {
   }, [user])
 
   return (
-    <div className="page">
+    <div className="page bg-washi">
       <div className="header-bar">
         <Kikko size={28} color="var(--wine)" opacity={0.7} />
         <h1 className="header-title font-playfair" style={{ fontSize: '1.1rem' }}>我的</h1>
@@ -56,9 +63,87 @@ export default function ProfilePage() {
       <div className="flex flex-col gap-4 mt-3">
         {/* 身份卡 */}
         <div className="card text-center anim-up">
-          <div className="text-3xl mb-2">📝</div>
-          <h2 className="text-lg font-extrabold">{nickname}</h2>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+            <GreekAvatar hero={avatar} size={76} />
+          </div>
+          {editingName ? (
+            <div className="flex items-center gap-2 justify-center mt-1">
+              <input
+                className="input"
+                style={{ maxWidth: 160, padding: '6px 10px', fontSize: '0.9rem' }}
+                value={nameDraft}
+                onChange={e => setNameDraft(e.target.value)}
+                autoFocus
+              />
+              <button className="btn btn-primary btn-sm" onClick={async () => {
+                const v = nameDraft.trim()
+                if (!v) return
+                await supabase.from('profiles').update({ nickname: v }).eq('id', user.id)
+                setNickname(v); setEditingName(false)
+              }}>保存</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditingName(false)}>取消</button>
+            </div>
+          ) : (
+            <h2 className="text-lg font-extrabold flex items-center gap-2 justify-center">
+              {nickname}
+              <button className="btn btn-ghost btn-sm" style={{ padding: '2px 6px' }}
+                onClick={() => { setNameDraft(nickname); setEditingName(true) }}>
+                <Pencil size={12} />
+              </button>
+            </h2>
+          )}
           <p className="text-xs" style={{ color: 'var(--ink-light)' }}>{user?.email}</p>
+          <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} className="btn btn-ghost btn-sm mt-2">
+            选择头像 ▾
+          </button>
+          {showAvatarPicker && (
+            <div className="mt-3" style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+              {/* 系列切换 */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
+                {AVATAR_SERIES.map(s => (
+                  <button key={s.id} onClick={() => setAvatarSeries(s.id)}
+                    className={`btn btn-sm ${avatarSeries === s.id ? 'btn-primary' : 'btn-ghost'}`}>
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+              {/* 网格布局：2列 */}
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+                maxHeight: 340, overflowY: 'auto', paddingRight: 4,
+              }}>
+                {AVATAR_SERIES.find(s => s.id === avatarSeries)?.items.map(h => {
+                  const selected = avatar === h.id
+                  return (
+                    <button key={h.id} onClick={async () => {
+                      setAvatar(h.id)
+                      await supabase.from('profiles').update({ avatar: h.id }).eq('id', user.id)
+                      setShowAvatarPicker(false)
+                    }}
+                    style={{
+                      cursor: 'pointer', background: selected ? 'rgba(184,149,106,0.1)' : '#fff',
+                      border: selected ? '1.5px solid var(--gold)' : '1px solid var(--line)',
+                      borderRadius: 12, padding: 12, textAlign: 'center',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                      transition: 'all 0.2s',
+                    }}>
+                      <GreekAvatar hero={h.id} size={56} />
+                      <span className="text-sm font-bold" style={{ color: 'var(--ink)' }}>{h.name}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--gold-dark)', fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic' }}>
+                        {h.en}
+                      </span>
+                      <span className="text-[10px] leading-snug" style={{ color: 'var(--ink-light)', fontStyle: 'italic' }}>
+                        “{h.quote}”
+                      </span>
+                      <span className="text-[10px] leading-snug" style={{ color: 'var(--ink-light)' }}>
+                        {h.quoteZh}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           {stats.streak >= 7 && (
             <div className="badge badge-gold mt-3" style={{ padding: '6px 14px' }}>
               <Award size={14} />{stats.streak >= 30 ? '👑 钻石打卡王！' : stats.streak >= 14 ? '🌟 金牌学习者！' : '🔥 连续 7 天打卡！'}

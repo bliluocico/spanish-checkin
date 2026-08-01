@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 
 import PoetryCard from './PoetryCard'
+import GreekAvatar from './GreekAvatars'
 
 function ago(d) {
   const m = Math.floor((new Date() - new Date(d)) / 60000)
@@ -74,9 +75,7 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh, onRemi
 
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-base" style={{ background: isOwn ? 'rgba(184,149,106,0.12)' : 'rgba(184,149,106,0.06)' }}>
-              {isOwn ? '📝' : '🌸'}
-            </div>
+            <GreekAvatar hero={checkin.profiles?.avatar || 'achilles'} size={34} />
             <div>
               <p className="text-sm font-bold flex items-center gap-1" style={{ color: 'var(--ink)' }}>
                 {checkin.profiles?.nickname || '未知'}

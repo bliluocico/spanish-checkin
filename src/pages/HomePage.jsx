@@ -56,9 +56,12 @@ export default function HomePage() {
       const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).is('challenge_id', null).order('created_at', { ascending: false }).limit(100)
       if (error) throw error
       const uids = [...new Set((checks || []).map(c => c.user_id))]
-      const { data: profiles } = await supabase.from('profiles').select('id, nickname').in('id', uids)
-      const map = {}; (profiles || []).forEach(p => { map[p.id] = p.nickname })
-      setCheckins((checks || []).map(c => ({ ...c, profiles: { nickname: map[c.user_id] || '未知' } })))
+      const { data: profiles } = await supabase.from('profiles').select('id, nickname, avatar').in('id', uids)
+      const map = {}; (profiles || []).forEach(p => { map[p.id] = p })
+      setCheckins((checks || []).map(c => ({
+        ...c,
+        profiles: { nickname: map[c.user_id]?.nickname || '未知', avatar: map[c.user_id]?.avatar || 'achilles' },
+      })))
       setErr('')
     } catch (e) { setErr(e.message) }
     finally { setLoading(false) }
@@ -151,7 +154,7 @@ export default function HomePage() {
   }, [filtered, recentSet])
 
   return (
-    <div className="page">
+    <div className="page bg-washi">
       <div className="header-bar">
         <Seigaiha size={28} color="var(--gold)" opacity={0.7} />
         <div className="flex-1">
