@@ -25,6 +25,17 @@ export default function Heatmap({ checkins, onPickDate }) {
     let currentWeekDays = 0
     let currentWeekMins = 0
 
+    const flushWeek = (weekEndDate) => {
+      if (currentWeekDays > 0 || currentWeekMins > 0) {
+        const weekStart = new Date(weekEndDate); weekStart.setDate(weekStart.getDate() - 6)
+        weekStats.push({
+          label: `${weekStart.getMonth()+1}/${weekStart.getDate()} - ${weekEndDate.getMonth()+1}/${weekEndDate.getDate()}`,
+          days: currentWeekDays, mins: currentWeekMins,
+        })
+      }
+      currentWeekDays = 0; currentWeekMins = 0
+    }
+
     for (let i = 0; i < 35; i++) {
       const d = new Date(start)
       d.setDate(start.getDate() + i)
@@ -39,17 +50,6 @@ export default function Heatmap({ checkins, onPickDate }) {
       if (count > 0) currentWeekDays++
       const dayMins = checkins.filter(c => c.checkin_date === dateStr).reduce((s, c) => s + (c.duration_minutes || 0), 0)
       currentWeekMins += dayMins
-
-      const flushWeek = (weekEndDate) => {
-        if (currentWeekDays > 0 || currentWeekMins > 0) {
-          const weekStart = new Date(weekEndDate); weekStart.setDate(weekStart.getDate() - 6)
-          weekStats.push({
-            label: `${weekStart.getMonth()+1}/${weekStart.getDate()} - ${weekEndDate.getMonth()+1}/${weekEndDate.getDate()}`,
-            days: currentWeekDays, mins: currentWeekMins,
-          })
-        }
-        currentWeekDays = 0; currentWeekMins = 0
-      }
 
       if (isWeekEnd) flushWeek(d)
 
