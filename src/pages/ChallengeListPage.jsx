@@ -4,6 +4,7 @@ import { Trophy, CalendarDays, Clock, Users, Flag, Trash2, RefreshCw, BookOpen, 
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CreateChallengeModal from '../components/CreateChallengeModal'
+import { Asanoha } from '../components/WafuuPatterns'
 
 export default function ChallengeListPage() {
   const { user } = useAuth()
@@ -68,7 +69,8 @@ export default function ChallengeListPage() {
   return (
     <div className="page">
       <div className="header-bar">
-        <div className="flex-1"><h1 className="header-title">🏆 打卡挑战</h1><p className="header-sub">和好朋友一起坚持学习</p></div>
+        <Asanoha size={28} color="var(--sage)" opacity={0.7} />
+        <div className="flex-1"><h1 className="header-title font-playfair" style={{ fontSize: '1.1rem' }}>打卡挑战</h1><p className="header-sub">和好朋友一起坚持学习</p></div>
         <button onClick={fetch} className="btn btn-icon btn-ghost"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} /></button>
         <button onClick={() => setShowCreate(true)} className="btn btn-primary btn-sm">新建</button>
       </div>

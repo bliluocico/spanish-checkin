@@ -26,13 +26,18 @@
 html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: 'Nunito', 'PingFang SC', 'Microsoft YaHei', serif;
+  font-family: 'Noto Serif SC', 'Nunito', 'PingFang SC', 'Microsoft YaHei', serif;
   background: var(--parchment);
   color: var(--ink);
   min-height: 100dvh;
   overflow-x: hidden;
   line-height: 1.6;
 }
+
+/* 西语艺术字体标题 */
+.font-playfair { font-family: 'Playfair Display', 'Noto Serif SC', serif; }
+.font-cormorant { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
+.font-amatic { font-family: 'Amatic SC', 'Noto Serif SC', cursive; }
 
 #root {
   min-height: 100dvh;

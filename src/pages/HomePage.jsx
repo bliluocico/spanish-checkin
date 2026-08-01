@@ -5,6 +5,7 @@ import { useAuth } from '../authContext'
 import CheckinCard from '../components/CheckinCard'
 import CheckinForm from '../components/CheckinForm'
 import Heatmap from '../components/Heatmap'
+import { Seigaiha, PatternDivider } from '../components/WafuuPatterns'
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 
@@ -152,8 +153,9 @@ export default function HomePage() {
   return (
     <div className="page">
       <div className="header-bar">
+        <Seigaiha size={28} color="var(--gold)" opacity={0.7} />
         <div className="flex-1">
-          <h1 className="header-title">🌸 Tu Viaje Español</h1>
+          <h1 className="header-title" style={{ fontFamily: "'Playfair Display', serif", letterSpacing: '0.5px' }}>Tu Viaje Español</h1>
           <p className="header-sub">
             我 🔥{myStreak}天 · 好友 🔥{friendStreak}天
           </p>
@@ -187,6 +189,7 @@ export default function HomePage() {
       `}</style>
 
       <div className="px-4 pt-3">
+        <PatternDivider pattern="shippo" color="var(--gold)" size={12} />
         <Heatmap checkins={filtered} onPickDate={(d) => {
           // 滚动到该天的分组
           document.getElementById('group-' + d)?.scrollIntoView({ behavior: 'smooth', block: 'start' })

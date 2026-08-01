@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>百叶窗 · 细页版</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'PingFang SC', sans-serif; height: 100vh; display: flex; background: #f5f0e8; overflow: hidden; }
+
+  /* 左侧画屏 — 窗户 */
+  .side {
+    position: relative;
+    width: 150px;
+    height: 100vh;
+    background: #3a2a18;
+    box-shadow: 3px 0 14px rgba(0,0,0,0.35);
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  /* 窗框 */
+  .frame {
+    position: absolute;
+    top: 12px; bottom: 12px; left: 10px; right: 10px;
+    border: 6px solid #6b4a28;
+    background: #2a1e12;
+    box-shadow:
+      inset 0 0 0 2px #8a6a3a,
+      inset 0 0 20px rgba(0,0,0,0.6);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  /* 百叶窗 — 细长横页 */
+  .louver {
+    position: absolute;
+    left: 0; right: 0;
+    height: 22px; /* 每页细长 */
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s;
+    background: #1e150c;
+  }
+
+  /* 窗页里的画：每页是整幅画的横切片 */
+  .louver img {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  /* 窗页质感：木纹 + 玻璃反光 */
+  .louver::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.25) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.4);
+    pointer-events: none;
+    z-index: 5;
+  }
+  /* 斜向反光带 */
+  .louver::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.08) 45%, transparent 55%);
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  /* 展开的窗页（点中后） */
+  .louver.expanded {
+    transform: scaleY(1) translateY(0);
+    z-index: 20;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+  .side.one-open .louver:not(.expanded) { opacity: 0.25; transform: translateY(0); }
+  .side.one-open .louver.expanded { transform: scaleY(10); } /* 撑满 */
+
+  /* 关闭态：窗页错落 */
+  .side.closed .louver { transform: translateY(0); }
+
+  .hint {
+    position: fixed; bottom: 20px; left: 170px;
+    color: #a89a85; font-size: 13px; letter-spacing: 1px;
+  }
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px;
+  }
+  .content h1 { color: #3a2e25; font-size: 24px; letter-spacing: 4px; }
+  .content p { color: #8a7a65; font-size: 14px; letter-spacing: 1px; }
+  .demo-card {
+    background: rgba(255,255,255,0.92); border-radius: 12px;
+    padding: 22px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    width: 320px;
+  }
+  .demo-card h3 { font-size: 14px; color: #3a2e25; margin-bottom: 8px; }
+  .demo-card p { font-size: 12px; color: #777; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+  <div class="side" id="side">
+    <div class="frame" id="frame"></div>
+  </div>
+
+  <div class="content">
+    <h1>🌸 Tu Viaje Español</h1>
+    <p>和好朋友一起学西语</p>
+    <div class="demo-card"><h3>今日打卡</h3><p>8月1日 · 学了不规则动词变位……</p></div>
+    <div class="demo-card"><h3>我的战绩</h3><p>🏆 3胜 🤝 1平 💔 0败</p></div>
+  </div>
+
+  <div class="hint">点击窗页展开，再点收回</div>
+
+  <script>
+    const frame = document.getElementById('frame');
+    const side = document.getElementById('side');
+    const images = [
+      'paintings/thumb_日本桥.jpg',
+      'paintings/thumb_阿尔的朗格卢瓦桥.jpg',
+      'paintings/thumb_雨中的桥：仿歌川广重.jpg'
+    ];
+
+    // 15 条细页
+    const LOUVERS = 15;
+    const frameH = window.innerHeight - 24; // 窗框高度
+    const pageH = frameH / LOUVERS;
+    const imgAspect = 3 / 2.5; // 每幅画宽高比约 1.2
+
+    for (let i = 0; i < LOUVERS; i++) {
+      const l = document.createElement('div');
+      l.className = 'louver';
+      l.style.top = (i * pageH) + 'px';
+      l.style.height = pageH + 'px';
+
+      // 每页显示第几幅画的哪一段
+      const imgIdx = Math.floor(i / (LOUVERS / images.length)); // 每 5 页换一幅
+      const seg = (i % (LOUVERS / images.length)) / (LOUVERS / images.length); // 段位置
+      const img = document.createElement('img');
+      img.src = images[imgIdx];
+      img.style.top = `-${seg * 100}%`;
+      img.style.height = `${LOUVERS / images.length * 100}%`; // 5 页共享一幅画的高度
+      l.appendChild(img);
+      l.dataset.img = imgIdx;
+
+      l.addEventListener('click', () => {
+        const isOpen = side.classList.contains('one-open') && l.classList.contains('expanded');
+        // 关闭所有
+        frame.querySelectorAll('.louver').forEach(x => x.classList.remove('expanded'));
+        side.classList.remove('one-open');
+        if (!isOpen) {
+          // 展开这幅画的所有页
+          frame.querySelectorAll('.louver').forEach(x => {
+            if (x.dataset.img == imgIdx) x.classList.add('expanded');
+          });
+          side.classList.add('one-open');
+        }
+      });
+      frame.appendChild(l);
+    }
+  </script>
+</body>
+</html>

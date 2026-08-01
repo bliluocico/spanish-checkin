@@ -6,6 +6,7 @@ import { useAuth } from '../authContext'
 import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
 import DonQuixoteBadge from '../components/DonQuixoteBadge'
+import { Kikko } from '../components/WafuuPatterns'
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -47,7 +48,10 @@ export default function ProfilePage() {
 
   return (
     <div className="page">
-      <div className="header-bar"><h1 className="header-title">我的</h1></div>
+      <div className="header-bar">
+        <Kikko size={28} color="var(--wine)" opacity={0.7} />
+        <h1 className="header-title font-playfair" style={{ fontSize: '1.1rem' }}>我的</h1>
+      </div>
 
       <div className="flex flex-col gap-4 mt-3">
         {/* 身份卡 */}
