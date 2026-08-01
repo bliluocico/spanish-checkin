@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, X, Pencil, Trash2, Check, Heart, Bell } from 'lucide-react'
+import { Clock, X, Pencil, Trash2, Check, Heart, Bell, BookOpen } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 
@@ -100,8 +100,12 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh, onRemi
             </div>
           </div>
         ) : (() => {
-          // 检测是否为诗歌格式
-          try { const d = JSON.parse(checkin.content); if (d.t === 'poetry') return <PoetryCard data={d} /> } catch {}
+          // 检测是否为诗歌格式 — 首页只显示简短标识，完整批注只在挑战页
+          try { const d = JSON.parse(checkin.content); if (d.t === 'poetry')
+            return <p className="text-sm leading-relaxed flex items-center gap-2" style={{ color: 'var(--wine)' }}>
+              <BookOpen size={14} />诗歌批注 · 共 {d.poem.split('\n').length} 行
+            </p>
+          } catch {}
           return <p className="whitespace-pre-wrap text-sm leading-relaxed">{checkin.content}</p>
         })()}
 

@@ -7,6 +7,7 @@ import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
 import DonQuixoteBadge from '../components/DonQuixoteBadge'
 import PoetryEditor from '../components/PoetryEditor'
+import PoetryCard from '../components/PoetryCard'
 
 const TYPE_CFG = {
   word:  { icon: <BookOpen size={16} />, name: '单词挑战', goalLabel: '每天目标', goalUnit: '个词' },
@@ -223,7 +224,7 @@ export default function ChallengeDetailPage() {
                 const other = g(otherUser?.user_id, day.date)
                 return (
                   <div key={day.date} className="flex items-center gap-2 px-3 py-1.5 rounded"
-                    style={{ background: day.date === new Date().toISOString().split('T')[0] ? 'var(--parchment-deep)' : 'transparent' }}>
+                    style={{ background: day.date === `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}` ? 'var(--parchment-deep)' : 'transparent' }}>
                     <span className="text-xs font-bold" style={{ color: 'var(--ink-light)', width: 40 }}>第{day.n}天</span>
                     <span style={{ opacity: me ? 1 : 0.25 }}>✅</span>
                     <span style={{ opacity: other ? 1 : 0.25 }}>🌸</span>
@@ -232,6 +233,25 @@ export default function ChallengeDetailPage() {
                 )
               })}
             </div>
+          </div>
+        )}
+
+        {/* 打卡记录列表 — 诗歌完整展示 */}
+        {isActive && checkins.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {checkins.map(c => {
+              const isPoetry = (() => { try { const d = JSON.parse(c.content); return d.t === 'poetry' } catch { return false } })()
+              const other = c.user_id !== user.id
+              return (
+                <div key={c.id} className="card" style={{ borderLeft: other ? '3px solid var(--sage)' : '3px solid var(--gold)' }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-bold">{other ? '🌸 好友' : '📝 我'}</span>
+                    <span className="text-xs" style={{ color: 'var(--ink-light)' }}>{c.checkin_date.slice(5)}</span>
+                  </div>
+                  {isPoetry ? <PoetryCard data={JSON.parse(c.content)} /> : <p className="text-sm whitespace-pre-wrap">{c.content}</p>}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
