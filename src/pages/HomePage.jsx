@@ -187,7 +187,7 @@ export default function HomePage() {
       `}</style>
 
       <div className="px-4 pt-3">
-        <Heatmap checkins={checkins} onPickDate={(d) => {
+        <Heatmap checkins={filtered} onPickDate={(d) => {
           // 滚动到该天的分组
           document.getElementById('group-' + d)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }} />
