@@ -6,6 +6,7 @@ import { useAuth } from '../authContext'
 import CervantesBadge from '../components/CervantesBadge'
 import BorgesBadge from '../components/BorgesBadge'
 import DonQuixoteBadge from '../components/DonQuixoteBadge'
+import PoetryEditor from '../components/PoetryEditor'
 
 const TYPE_CFG = {
   word:  { icon: <BookOpen size={16} />, name: '单词挑战', goalLabel: '每天目标', goalUnit: '个词' },
@@ -78,11 +79,25 @@ export default function ChallengeDetailPage() {
     if (!ckDuration || isNaN(m) || m < 1) { setCkError('请填写学习时长'); return }
     setCkLoading(true)
     try {
+      const now = new Date()
       await supabase.from('checkins').insert({
         user_id: user.id, content: ckContent.trim(), duration_minutes: m,
-        checkin_date: `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`, challenge_id: id,
+        checkin_date: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`, challenge_id: id,
       })
       setCkContent(''); setCkDuration(''); fetch()
+    } catch (err) { setCkError(err.message) }
+    finally { setCkLoading(false) }
+  }
+
+  const doPoetryCheckin = async (poetryData) => {
+    setCkLoading(true); setCkError('')
+    try {
+      const now = new Date()
+      await supabase.from('checkins').insert({
+        user_id: user.id, content: poetryData, duration_minutes: 15,
+        checkin_date: `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`, challenge_id: id,
+      })
+      fetch()
     } catch (err) { setCkError(err.message) }
     finally { setCkLoading(false) }
   }
@@ -170,14 +185,18 @@ export default function ChallengeDetailPage() {
         {isActive && (
           <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><Sparkles size={14} style={{ color: 'var(--gold)' }} />今日打卡</h3>
-            {checkins.some(c => c.user_id === user.id && c.checkin_date === new Date().toISOString().split('T')[0]) ? (
+            {checkins.some(c => c.user_id === user.id && c.checkin_date ===
+              `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`
+            ) ? (
               <div className="text-center py-3">
                 <span className="badge badge-sage">✅ 今日已打卡</span>
               </div>
+            ) : challenge.type === 'poetry' ? (
+              <PoetryEditor onSubmit={doPoetryCheckin} loading={ckLoading} />
             ) : (
               <form onSubmit={doCheckin} className="flex flex-col gap-3">
                 <textarea className="input" rows={3} value={ckContent} onChange={e => { setCkContent(e.target.value); setCkError('') }}
-                  placeholder={challenge.type === 'poetry' ? '写下今天的诗歌批注...' : '今天学了什么？'} />
+                  placeholder='今天学了什么？' />
                 <div className="flex gap-3 items-end">
                   <div className="flex-1">
                     <label className="text-xs font-bold mb-1 block" style={{ color: 'var(--ink-light)' }}>学习时长（分钟）</label>

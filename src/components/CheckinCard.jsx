@@ -3,6 +3,8 @@ import { Clock, X, Pencil, Trash2, Check, Heart, Bell } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 
+import PoetryCard from './PoetryCard'
+
 function ago(d) {
   const m = Math.floor((new Date() - new Date(d)) / 60000)
   if (m < 1) return '刚刚'
@@ -97,9 +99,11 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh, onRemi
               <button className="btn btn-primary btn-sm" onClick={save} disabled={saving}><Check size={14} />保存</button>
             </div>
           </div>
-        ) : (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{checkin.content}</p>
-        )}
+        ) : (() => {
+          // 检测是否为诗歌格式
+          try { const d = JSON.parse(checkin.content); if (d.t === 'poetry') return <PoetryCard data={d} /> } catch {}
+          return <p className="whitespace-pre-wrap text-sm leading-relaxed">{checkin.content}</p>
+        })()}
 
         {checkin.image_url && (
           <div className="mt-3">
