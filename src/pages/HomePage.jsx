@@ -34,7 +34,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [showAll, setShowAll] = useState(true) // true=一起看, false=只看自己
+  const [showAll, setShowAll] = useState(true)
+  const [friendStreak, setFriendStreak] = useState(0)
+  const [myStreak, setMyStreak] = useState(0)
+  const [reminderCount, setReminderCount] = useState(0)
+  const [friendId, setFriendId] = useState(null)
 
   const fetch = useCallback(async () => {
     if (!user) return
@@ -54,6 +58,52 @@ export default function HomePage() {
   }, [user])
 
   useEffect(() => { fetch() }, [fetch])
+
+  // 拉连击 + 提醒
+  useEffect(() => {
+    if (!user) return
+    ;(async () => {
+      // 找好友 ID
+      const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id)
+      if (friends?.length > 0) {
+        const fid = friends[0].friend_id
+        setFriendId(fid)
+        // 好友连击
+        const { data: fChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', fid).order('checkin_date', { ascending: false })
+        if (fChecks) {
+          let s = 0; const today = new Date(); today.setHours(0,0,0,0)
+          const set = new Set(fChecks.map(c => c.checkin_date))
+          let cur = new Date(today)
+          if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate()-1)
+          while (set.has(cur.toISOString().split('T')[0])) { s++; cur.setDate(cur.getDate()-1) }
+          setFriendStreak(s)
+        }
+      }
+      // 我的连击
+      const { data: myChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', user.id).order('checkin_date', { ascending: false })
+      if (myChecks) {
+        let s = 0; const today = new Date(); today.setHours(0,0,0,0)
+        const set = new Set(myChecks.map(c => c.checkin_date))
+        let cur = new Date(today)
+        if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate()-1)
+        while (set.has(cur.toISOString().split('T')[0])) { s++; cur.setDate(cur.getDate()-1) }
+        setMyStreak(s)
+      }
+      // 提醒数
+      const { count } = await supabase.from('reminders').select('*', { count: 'exact', head: true }).eq('to_user', user.id)
+      setReminderCount(count || 0)
+    })()
+  }, [user, checkins])
+
+  const handleRemind = async (targetId) => {
+    await supabase.from('reminders').upsert({ from_user: user.id, to_user: targetId }, { onConflict: 'from_user,to_user' })
+    alert('已发送提醒！')
+  }
+
+  const clearReminders = async () => {
+    await supabase.from('reminders').delete().eq('to_user', user.id)
+    setReminderCount(0)
+  }
 
   // 筛选 + 分组
   const filtered = useMemo(() =>
@@ -87,9 +137,19 @@ export default function HomePage() {
       <div className="header-bar">
         <div className="flex-1">
           <h1 className="header-title">🌸 Tu Viaje Español</h1>
-          <p className="header-sub">和好朋友一起学西语</p>
+          <p className="header-sub">
+            我 🔥{myStreak}天 · 好友 🔥{friendStreak}天
+          </p>
         </div>
-        <button onClick={fetch} className="btn btn-icon btn-ghost"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} /></button>
+        <div className="flex items-center gap-1">
+          {reminderCount > 0 && (
+            <button onClick={clearReminders} className="btn btn-icon btn-ghost relative" title="好友提醒了你">
+              <Bell size={18} style={{ color: 'var(--wine)' }} />
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--wine)' }}>{reminderCount}</span>
+            </button>
+          )}
+          <button onClick={fetch} className="btn btn-icon btn-ghost"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} /></button>
+        </div>
       </div>
 
       {/* 筛选栏 */}
@@ -148,7 +208,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex flex-col gap-2">
                     {g.checkins.map((c, i) => (
-                      <CheckinCard key={c.id} checkin={c} isOwn={c.user_id === user.id} idx={gi + i} onRefresh={fetch} />
+                      <CheckinCard key={c.id} checkin={c} isOwn={c.user_id === user.id} idx={gi + i} onRefresh={fetch} onRemind={handleRemind} />
                     ))}
                   </div>
                 </div>

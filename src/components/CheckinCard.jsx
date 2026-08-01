@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Clock, X, Pencil, Trash2, Check } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Clock, X, Pencil, Trash2, Check, Heart, Bell } from 'lucide-react'
 import { supabase } from '../supabase'
+import { useAuth } from '../authContext'
 
 function ago(d) {
   const m = Math.floor((new Date() - new Date(d)) / 60000)
@@ -14,11 +15,32 @@ function ago(d) {
   return new Date(d).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
-export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh }) {
+export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh, onRemind }) {
+  const { user } = useAuth()
   const [zoom, setZoom] = useState(false)
   const [edit, setEdit] = useState(false)
   const [txt, setTxt] = useState(checkin.content)
   const [saving, setSaving] = useState(false)
+  const [likes, setLikes] = useState(0)
+  const [liked, setLiked] = useState(false)
+
+  useEffect(() => {
+    supabase.from('checkin_reactions').select('user_id', { count: 'exact' }).eq('checkin_id', checkin.id).then(({ count, data }) => {
+      setLikes(count || 0)
+      setLiked((data || []).some(r => r.user_id === user?.id))
+    })
+  }, [checkin.id, user?.id])
+
+  const toggleLike = async () => {
+    if (isOwn) return // 不能给自己点赞
+    if (liked) {
+      await supabase.from('checkin_reactions').delete().eq('checkin_id', checkin.id).eq('user_id', user.id)
+      setLikes(l => l - 1); setLiked(false)
+    } else {
+      await supabase.from('checkin_reactions').insert({ checkin_id: checkin.id, user_id: user.id })
+      setLikes(l => l + 1); setLiked(true)
+    }
+  }
 
   const del = async () => {
     if (!confirm('删除这条打卡？')) return
@@ -86,8 +108,20 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh }) {
           </div>
         )}
 
-        <div className="mt-3 pt-3 flex items-center gap-2 text-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-light)' }}>
-          📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+        <div className="mt-3 pt-3 flex items-center justify-between text-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-light)' }}>
+          <span>📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span>
+          <div className="flex items-center gap-3">
+            {!isOwn && (
+              <button onClick={toggleLike} className="flex items-center gap-1 transition-colors" style={{ color: liked ? '#e74c3c' : 'var(--ink-light)', fontWeight: liked ? 700 : 400 }}>
+                <Heart size={14} fill={liked ? '#e74c3c' : 'none'} />{likes > 0 && likes}
+              </button>
+            )}
+            {!isOwn && onRemind && (
+              <button onClick={() => onRemind(checkin.user_id)} className="flex items-center gap-1" style={{ color: 'var(--ink-light)' }} title="提醒TA打卡">
+                <Bell size={13} />提醒
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
