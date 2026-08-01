@@ -20,6 +20,7 @@ export default function CheckinForm({ isOpen, onClose, onSuccess, activeChalleng
 
   const pickImg = (e) => {
     const f = e.target.files?.[0]
+    e.target.value = '' // 清空，允许重选同一文件
     if (!f) return
     if (!['image/jpeg','image/png','image/gif','image/webp'].includes(f.type)) { setError('仅支持 JPG/PNG/GIF/WebP'); return }
     if (f.size > 5*1024*1024) { setError('图片不超过 5MB'); return }

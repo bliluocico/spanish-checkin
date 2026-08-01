@@ -26,7 +26,7 @@ export default function ChallengeListPage() {
       const cids = (chs || []).map(c => c.id)
       let pMap = {}
       if (cids.length > 0) {
-        const { data: pp } = await supabase.from('challenge_participants').select('challenge_id,user_id,status').in('challenge_id', cids)
+        const { data: pp } = await supabase.from('challenge_participants').select('challenge_id,user_id,accepted').in('challenge_id', cids)
         ;(pp || []).forEach(p => { if (!pMap[p.challenge_id]) pMap[p.challenge_id] = []; pMap[p.challenge_id].push(p) })
       }
 
@@ -101,7 +101,7 @@ export default function ChallengeListPage() {
               <div className="flex items-center gap-3 text-xs mb-3" style={{ color: 'var(--ink-light)' }}>
                 <span className="flex items-center gap-1"><CalendarDays size={12} />{c.total_days} 天</span>
                 <span className="flex items-center gap-1"><Clock size={12} />{String(c.deadline_time).substring(0,5)} 截止</span>
-                <span className="flex items-center gap-1"><Users size={12} />{(c.participants||[]).length+1} 人</span>
+                <span className="flex items-center gap-1"><Users size={12} />{(c.participants||[]).filter(p => p.accepted).length+1} 人</span>
               </div>
               {c.status === 'active' && (
                 <div style={{ background: 'var(--parchment-deep)', borderRadius: 'var(--radius)', padding: '10px 14px' }}>

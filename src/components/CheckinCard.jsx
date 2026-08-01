@@ -117,7 +117,7 @@ export default function CheckinCard({ checkin, isOwn, idx = 0, onRefresh, onRemi
         )}
 
         <div className="mt-3 pt-3 flex items-center justify-between text-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-light)' }}>
-          <span>📅 {new Date(checkin.checkin_date).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span>
+          <span>📅 {new Date(checkin.checkin_date + 'T00:00:00').toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}</span>
           <div className="flex items-center gap-3">
             {!isOwn && (
               <button onClick={toggleLike} className="flex items-center gap-1 transition-colors" style={{ color: liked ? '#e74c3c' : 'var(--ink-light)', fontWeight: liked ? 700 : 400 }}>

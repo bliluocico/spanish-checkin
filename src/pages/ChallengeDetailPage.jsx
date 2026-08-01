@@ -42,11 +42,11 @@ export default function ChallengeDetailPage() {
       const { data: parts } = await supabase.from('challenge_participants').select('*').eq('challenge_id', id)
       setParticipants(parts || [])
 
-      // 我在这挑战里的状态
+      // 我在这挑战里的状态 — 只按自己的 participant 判断，不依赖挑战的 pending
+      const me = (parts || []).find(p => p.user_id === user.id)
       if (ch.creator_id === user.id) {
         setMyStatus('accepted') // 创建者自动接受
       } else {
-        const me = (parts || []).find(p => p.user_id === user.id)
         setMyStatus(me ? (me.accepted ? 'accepted' : 'pending') : null)
       }
 
@@ -73,7 +73,6 @@ export default function ChallengeDetailPage() {
 
   const accept = async () => {
     await supabase.from('challenge_participants').update({ accepted: true }).eq('challenge_id', id).eq('user_id', user.id)
-    await supabase.from('challenges').update({ pending: false }).eq('id', id)
     fetch()
   }
 
@@ -87,7 +86,7 @@ export default function ChallengeDetailPage() {
     e.preventDefault(); setCkError('')
     if (!ckContent.trim()) { setCkError('请填写学习内容'); return }
     const m = parseInt(ckDuration)
-    if (!ckDuration || isNaN(m) || m < 1) { setCkError('请填写学习时长'); return }
+    if (!ckDuration || isNaN(m) || m < 1 || m > 1440) { setCkError('学习时长应在 1-1440 分钟'); return }
     setCkLoading(true)
     try {
       const now = new Date()
@@ -133,14 +132,17 @@ export default function ChallengeDetailPage() {
   if (!challenge) return null
 
   const cfg = TYPE_CFG[challenge.type] || TYPE_CFG.custom
-  const isPending = challenge.pending && myStatus === 'pending'
+  const isPending = myStatus === 'pending'
   const isActive = myStatus === 'accepted' && challenge.status === 'active'
   const canView = myStatus === 'accepted' // 已接受的无论状态都能看进度和记录
 
-  // 每日网格
+  // 每日网格（用本地日期，避免 UTC 偏移）
   const days = []
-  const start = new Date(challenge.start_date)
-  for (let i = 0; i < challenge.total_days; i++) { const d = new Date(start); d.setDate(d.getDate()+i); days.push({ date: d.toISOString().split('T')[0], n: i+1 }) }
+  const start = new Date(challenge.start_date + 'T00:00:00')
+  for (let i = 0; i < challenge.total_days; i++) {
+    const d = new Date(start); d.setDate(d.getDate()+i)
+    days.push({ date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`, n: i+1 })
+  }
 
   const g = (uid, date) => checkins.find(c => c.user_id === uid && c.checkin_date === date)
   const otherUser = participants.find(p => p.user_id !== user.id)
@@ -287,7 +289,9 @@ export default function ChallengeDetailPage() {
                   ) : isPoetry ? <PoetryCard data={JSON.parse(c.content)} /> : <p className="text-sm whitespace-pre-wrap">{c.content}</p>}
                   {!other && editingId !== c.id && (
                     <div className="flex gap-2 justify-end mt-3" style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => editCheckin(c)}><Pencil size={13} />编辑</button>
+                      {!isPoetry && (
+                        <button className="btn btn-ghost btn-sm" onClick={() => editCheckin(c)}><Pencil size={13} />编辑</button>
+                      )}
                       <button className="btn btn-ghost btn-sm" style={{ color: 'var(--wine)' }} onClick={() => deleteCheckin(c.id)}><Trash2 size={13} />删除</button>
                     </div>
                   )}

@@ -27,9 +27,10 @@ export default function ProfilePage() {
         let streak = 0
         const today = new Date(); today.setHours(0,0,0,0)
         const set = new Set(checks.map(c => c.checkin_date))
+        const ld = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
         let cur = new Date(today)
-        if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate()-1)
-        while (set.has(cur.toISOString().split('T')[0])) { streak++; cur.setDate(cur.getDate()-1) }
+        if (!set.has(ld(cur))) cur.setDate(cur.getDate()-1)
+        while (set.has(ld(cur))) { streak++; cur.setDate(cur.getDate()-1) }
         setStats({ total: checks.length, mins, streak })
       }
 

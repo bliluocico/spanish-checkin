@@ -28,6 +28,9 @@ function monthLabel(dateStr) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月`
 }
 
+// 本地日期 YYYY-MM-DD（避免 UTC 时区偏移）
+const localDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+
 export default function HomePage() {
   const { user } = useAuth()
   const [checkins, setCheckins] = useState([])
@@ -48,7 +51,7 @@ export default function HomePage() {
     try {
       const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id)
       const ids = [user.id, ...(friends || []).map(f => f.friend_id)]
-      const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).is('challenge_id', null).order('checkin_date', { ascending: false }).limit(100)
+      const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).is('challenge_id', null).order('created_at', { ascending: false }).limit(100)
       if (error) throw error
       const uids = [...new Set((checks || []).map(c => c.user_id))]
       const { data: profiles } = await supabase.from('profiles').select('id, nickname').in('id', uids)
@@ -76,8 +79,8 @@ export default function HomePage() {
           let s = 0; const today = new Date(); today.setHours(0,0,0,0)
           const set = new Set(fChecks.map(c => c.checkin_date))
           let cur = new Date(today)
-          if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate()-1)
-          while (set.has(cur.toISOString().split('T')[0])) { s++; cur.setDate(cur.getDate()-1) }
+          if (!set.has(localDate(cur))) cur.setDate(cur.getDate()-1)
+          while (set.has(localDate(cur))) { s++; cur.setDate(cur.getDate()-1) }
           setFriendStreak(s)
         }
       }
@@ -87,8 +90,8 @@ export default function HomePage() {
         let s = 0; const today = new Date(); today.setHours(0,0,0,0)
         const set = new Set(myChecks.map(c => c.checkin_date))
         let cur = new Date(today)
-        if (!set.has(cur.toISOString().split('T')[0])) cur.setDate(cur.getDate()-1)
-        while (set.has(cur.toISOString().split('T')[0])) { s++; cur.setDate(cur.getDate()-1) }
+        if (!set.has(localDate(cur))) cur.setDate(cur.getDate()-1)
+        while (set.has(localDate(cur))) { s++; cur.setDate(cur.getDate()-1) }
         setMyStreak(s)
       }
       // 提醒数
