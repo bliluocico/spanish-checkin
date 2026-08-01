@@ -48,12 +48,20 @@ export default function ChallengeDetailPage() {
         setMyStatus(me ? (me.accepted ? 'accepted' : 'pending') : null)
       }
 
-      // 已接受 → 拉打卡记录
+      // 已接受 → 拉打卡记录（分步查询，避免外键关联问题）
       if (ch.creator_id === user.id || (parts || []).some(p => p.user_id === user.id && p.accepted)) {
         const uids = [ch.creator_id, ...(parts || []).map(p => p.user_id)]
-        const { data: checks } = await supabase.from('checkins').select('*, profiles:user_id(nickname)')
-          .eq('challenge_id', id).in('user_id', uids).order('checkin_date', { ascending: false })
-        setCheckins(checks || [])
+        const { data: checks } = await supabase.from('checkins')
+          .select('*').eq('challenge_id', id).in('user_id', uids).order('checkin_date', { ascending: false })
+
+        // 单独查昵称映射
+        const cUids = [...new Set((checks || []).map(c => c.user_id))]
+        let nMap = {}
+        if (cUids.length > 0) {
+          const { data: profs } = await supabase.from('profiles').select('id, nickname').in('id', cUids)
+          ;(profs || []).forEach(p => { nMap[p.id] = p.nickname })
+        }
+        setCheckins((checks || []).map(c => ({ ...c, profiles: { nickname: nMap[c.user_id] || '未知' } })))
       }
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
