@@ -15,6 +15,21 @@ export default class ErrorBoundary extends Component {
     console.error('页面错误:', error, info)
   }
 
+  componentDidMount() {
+    // 捕获全局 JS 错误（React 错误边界之外）
+    window.__errorHandler = (msg, source, line, col, error) => {
+      this.setState({ hasError: true, error: error || new Error(msg) })
+    }
+    window.addEventListener('error', window.__errorHandler)
+    window.addEventListener('unhandledrejection', (e) => {
+      this.setState({ hasError: true, error: e.reason || new Error('Promise 错误') })
+    })
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('error', window.__errorHandler)
+  }
+
   handleReset = () => {
     this.setState({ hasError: false, error: null })
     window.location.reload()
