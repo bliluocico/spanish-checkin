@@ -35,8 +35,51 @@ export default function ChallengeDetailPage() {
   const fetch = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: ch } = await supabase.from('challenges').select('*').eq('id', id).single()
+      let { data: ch } = await supabase.from('challenges').select('*').eq('id', id).single()
       if (!ch) { nav('/challenges'); return }
+
+      // ═══ 挑战到期自动结束 + 胜负判定 ═══
+      if (ch.status === 'active') {
+        const endDate = new Date(ch.start_date + 'T00:00:00')
+        endDate.setDate(endDate.getDate() + ch.total_days)
+        const today = new Date(); today.setHours(0,0,0,0)
+
+        if (today > endDate) {
+          // 到期了 → 判定胜负
+          const { data: allParts } = await supabase.from('challenge_participants').select('user_id, accepted').eq('challenge_id', id)
+          const { data: allChecks } = await supabase.from('checkins').select('user_id, checkin_date').eq('challenge_id', id)
+
+          // 每个参与者的打卡天数（去重日期）
+          const dayCounts = {}
+          ;(allChecks || []).forEach(c => {
+            if (!dayCounts[c.user_id]) dayCounts[c.user_id] = new Set()
+            dayCounts[c.user_id].add(c.checkin_date)
+          })
+
+          // 谁完成了全部天数
+          const userIds = [ch.creator_id, ...(allParts || []).map(p => p.user_id)]
+          const completedIds = userIds.filter(uid => (dayCounts[uid]?.size || 0) >= ch.total_days)
+
+          // 判定
+          let winner = null, failed = null
+          if (completedIds.length === 1) {
+            winner = completedIds[0]
+            failed = userIds.find(uid => uid !== winner)
+          }
+          // 0 人完成或 2 人完成 → 平局（winner/failed 都 null）
+
+          await supabase.from('challenges').update({
+            status: 'completed',
+            winner_id: winner,
+            failed_user_id: failed,
+          }).eq('id', id)
+
+          // 重新拉取更新后的挑战
+          const { data: ch2 } = await supabase.from('challenges').select('*').eq('id', id).single()
+          if (ch2) ch = ch2
+        }
+      }
+
       setChallenge(ch)
 
       const { data: parts } = await supabase.from('challenge_participants').select('*').eq('challenge_id', id)
@@ -73,6 +116,8 @@ export default function ChallengeDetailPage() {
 
   const accept = async () => {
     await supabase.from('challenge_participants').update({ accepted: true }).eq('challenge_id', id).eq('user_id', user.id)
+    // 挑战标记为已接受（不再待接受）
+    await supabase.from('challenges').update({ pending: false }).eq('id', id)
     fetch()
   }
 
