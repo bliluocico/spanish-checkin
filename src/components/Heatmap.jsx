@@ -31,14 +31,11 @@ export default function Heatmap({ checkins, onPickDate }) {
       cur.setDate(cur.getDate()-1)
     }
 
-    // 生成最近 35 天（含今天），按周分组（周一~周日）
+    // 生成最近 5 周（含今天所在周），按周分组（周一~周日）
     const cells = []
+    const todayWk = (today.getDay() + 6) % 7 // 今天距周一几天
     const start = new Date(today)
-    start.setDate(start.getDate() - 34)
-
-    // 对齐到周一
-    const dayOfWeek = (start.getDay() + 6) % 7 // 周一=0
-    start.setDate(start.getDate() - dayOfWeek)
+    start.setDate(start.getDate() - todayWk - 28) // 今天所在周往前推 4 周整
 
     let week = []
     const weekStats = []
@@ -61,7 +58,7 @@ export default function Heatmap({ checkins, onPickDate }) {
       d.setDate(start.getDate() + i)
       const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
       const count = countMap[dateStr] || 0
-      const inRange = d <= today && d > new Date(today.getTime() - 35*86400000)
+      const inRange = d <= today && d >= new Date(today.getTime() - 34*86400000)
 
       week.push({ date: dateStr, count, inRange, streak: streakMap[dateStr] || 0 })
 
