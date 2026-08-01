@@ -126,8 +126,9 @@ export default function ChallengeDetailPage() {
 
   const g = (uid, date) => checkins.find(c => c.user_id === uid && c.checkin_date === date)
   const otherUser = participants.find(p => p.user_id !== user.id)
-  const myCount = checkins.filter(c => c.user_id === user.id).length
-  const otherCount = otherUser ? checkins.filter(c => c.user_id === otherUser.user_id).length : 0
+  // 按天数统计（同一天多次打卡只算一天）
+  const myDays = new Set(checkins.filter(c => c.user_id === user.id).map(c => c.checkin_date)).size
+  const otherDays = otherUser ? new Set(checkins.filter(c => c.user_id === otherUser.user_id).map(c => c.checkin_date)).size : 0
 
   return (
     <div className="page">
@@ -173,18 +174,18 @@ export default function ChallengeDetailPage() {
               <div className="flex-1 text-center">
                 <div className="text-2xl">📝</div>
                 <p className="text-xs font-bold mt-1">我</p>
-                <p className="text-lg font-extrabold" style={{ color: 'var(--gold)' }}>{myCount}/{challenge.total_days}</p>
+                <p className="text-lg font-extrabold" style={{ color: 'var(--gold)' }}>{myDays}/{challenge.total_days}</p>
                 <div style={{ height: 4, background: 'var(--line)', borderRadius: 2, overflow: 'hidden', marginTop: 4 }}>
-                  <div style={{ height: '100%', background: 'var(--gold)', borderRadius: 2, width: `${(myCount/challenge.total_days)*100}%` }} />
+                  <div style={{ height: '100%', background: 'var(--gold)', borderRadius: 2, width: `${(myDays/challenge.total_days)*100}%` }} />
                 </div>
               </div>
               <div style={{ width: 1, background: 'var(--line)' }} />
               <div className="flex-1 text-center">
                 <div className="text-2xl">🌸</div>
                 <p className="text-xs font-bold mt-1 truncate">{otherUser ? '好友' : '—'}</p>
-                <p className="text-lg font-extrabold" style={{ color: 'var(--sage)' }}>{otherCount}/{challenge.total_days}</p>
+                <p className="text-lg font-extrabold" style={{ color: 'var(--sage)' }}>{otherDays}/{challenge.total_days}</p>
                 <div style={{ height: 4, background: 'var(--line)', borderRadius: 2, overflow: 'hidden', marginTop: 4 }}>
-                  <div style={{ height: '100%', background: 'var(--sage)', borderRadius: 2, width: `${(otherCount/challenge.total_days)*100}%` }} />
+                  <div style={{ height: '100%', background: 'var(--sage)', borderRadius: 2, width: `${(otherDays/challenge.total_days)*100}%` }} />
                 </div>
               </div>
             </div>
