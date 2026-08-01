@@ -109,6 +109,7 @@ export default function ChallengeDetailPage() {
   const cfg = TYPE_CFG[challenge.type] || TYPE_CFG.custom
   const isPending = challenge.pending && myStatus === 'pending'
   const isActive = myStatus === 'accepted' && challenge.status === 'active'
+  const canView = myStatus === 'accepted' // 已接受的无论状态都能看进度和记录
 
   // 每日网格
   const days = []
@@ -157,7 +158,7 @@ export default function ChallengeDetailPage() {
 
       <div className="flex flex-col gap-4 px-4 mt-4">
         {/* 进度对比 */}
-        {isActive && (
+        {canView && (
           <div className="card">
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><Target size={14} style={{ color: 'var(--gold)' }} />双方进度</h3>
             <div className="flex items-stretch gap-4">
@@ -183,7 +184,7 @@ export default function ChallengeDetailPage() {
         )}
 
         {/* 内嵌打卡 — 仅在已接受时显示 */}
-        {isActive && (
+        {canView && (
           <div className="card" style={{ borderLeft: '3px solid var(--gold)' }}>
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><Sparkles size={14} style={{ color: 'var(--gold)' }} />今日打卡</h3>
             {checkins.some(c => c.user_id === user.id && c.checkin_date ===
@@ -215,7 +216,7 @@ export default function ChallengeDetailPage() {
         )}
 
         {/* 每日记录网格 */}
-        {isActive && (
+        {canView && (
           <div className="card">
             <h3 className="text-sm font-bold mb-3">每日打卡记录</h3>
             <div className="flex flex-col gap-1.5">
@@ -237,7 +238,7 @@ export default function ChallengeDetailPage() {
         )}
 
         {/* 打卡记录列表 — 诗歌完整展示 */}
-        {isActive && checkins.length > 0 && (
+        {canView && checkins.length > 0 && (
           <div className="flex flex-col gap-3">
             {checkins.map(c => {
               const isPoetry = (() => { try { const d = JSON.parse(c.content); return d.t === 'poetry' } catch { return false } })()

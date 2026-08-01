@@ -48,7 +48,7 @@ export default function HomePage() {
     try {
       const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id)
       const ids = [user.id, ...(friends || []).map(f => f.friend_id)]
-      const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).order('checkin_date', { ascending: false }).limit(100)
+      const { data: checks, error } = await supabase.from('checkins').select('*').in('user_id', ids).is('challenge_id', null).order('checkin_date', { ascending: false }).limit(100)
       if (error) throw error
       const uids = [...new Set((checks || []).map(c => c.user_id))]
       const { data: profiles } = await supabase.from('profiles').select('id, nickname').in('id', uids)
