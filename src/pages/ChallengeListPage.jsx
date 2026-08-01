@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trophy, CalendarDays, Clock, Users, Flag, Trash2, RefreshCw } from 'lucide-react'
+import { Trophy, CalendarDays, Clock, Users, Flag, Trash2, RefreshCw, BookOpen, Pen, Timer, Target, Clock4 } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CreateChallengeModal from '../components/CreateChallengeModal'
@@ -51,7 +51,11 @@ export default function ChallengeListPage() {
     fetch()
   }
 
+  const TYPE_ICON = { word: <BookOpen size={14} />, poetry: <Pen size={14} />, time: <Timer size={14} />, custom: <Target size={14} /> }
+  const TYPE_NAME = { word: '单词', poetry: '诗歌', time: '时长', custom: '自由' }
+
   const badge = (c) => {
+    if (c.pending) return { t: '⏳ 待接受', c: 'badge-wine' }
     if (c.status === 'completed') {
       if (c.winner_id === user.id) return { t: '🏆 你赢了！', c: 'badge-gold' }
       if (c.failed_user_id === user.id) return { t: '💔 败北', c: 'badge-wine' }
@@ -86,7 +90,10 @@ export default function ChallengeListPage() {
               )}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0 pr-4">
-                  <h3 className="text-base font-extrabold truncate" style={{ color: 'var(--ink)' }}>{c.title}</h3>
+                  <h3 className="text-base font-extrabold truncate flex items-center gap-1.5" style={{ color: 'var(--ink)' }}>
+                    <span style={{ color: 'var(--gold-dark)' }}>{TYPE_ICON[c.type] || TYPE_ICON.custom}</span>
+                    {c.title}
+                  </h3>
                   {c.description && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--ink-light)' }}>{c.description}</p>}
                 </div>
                 <span className={`badge ${b.c}`}>{b.t}</span>
