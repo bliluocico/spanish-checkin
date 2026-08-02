@@ -79,7 +79,7 @@ export default function HomePage() {
         const fid = friends[0].friend_id
         setFriendId(fid)
         // 好友连击
-        const { data: fChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', fid).order('checkin_date', { ascending: false })
+        const { data: fChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', fid).is('challenge_id', null).order('checkin_date', { ascending: false })
         if (fChecks) {
           let s = 0; const today = new Date(); today.setHours(0,0,0,0)
           const set = new Set(fChecks.map(c => c.checkin_date))
@@ -90,7 +90,7 @@ export default function HomePage() {
         }
       }
       // 我的连击
-      const { data: myChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', user.id).order('checkin_date', { ascending: false })
+      const { data: myChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', user.id).is('challenge_id', null).order('checkin_date', { ascending: false })
       if (myChecks) {
         let s = 0; const today = new Date(); today.setHours(0,0,0,0)
         const set = new Set(myChecks.map(c => c.checkin_date))

@@ -29,7 +29,7 @@ export default function ProfilePage() {
       setNickname(prof?.nickname || user.email?.split('@')[0] || '未知')
       if (prof?.avatar) setAvatar(prof.avatar)
 
-      const { data: checks } = await supabase.from('checkins').select('duration_minutes,checkin_date').eq('user_id', user.id).order('checkin_date', { ascending: false })
+      const { data: checks } = await supabase.from('checkins').select('duration_minutes,checkin_date').eq('user_id', user.id).is('challenge_id', null).order('checkin_date', { ascending: false })
       if (checks) {
         const mins = checks.reduce((s, c) => s + c.duration_minutes, 0)
         let streak = 0
