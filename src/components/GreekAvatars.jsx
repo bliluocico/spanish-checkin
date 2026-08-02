@@ -1,5 +1,6 @@
-// 荷马史诗头像 — 专业图标 + 陶土圆底黑绘风格
-// 图标来源：Game-Icons (game-icons.net) 开源免费，存于 public/avatars/
+// 荷马史诗头像 + 西语世界城市头像 — 黑绘陶瓶风格
+// SVG 文件存于 public/avatars/，由组件 fetch 后内联渲染
+// 这样刻线可保留真实陶土色，剪影为黑釉
 
 export const HEROES = [
   { id: 'achilles', name: '阿喀琉斯', en: 'AQUILES', title: '特洛伊第一勇士', quote: 'La ira canta, oh diosa, del Pelida Aquiles.', quoteZh: '歌唱吧，女神，佩琉斯之子阿喀琉斯的愤怒。' },
@@ -28,41 +29,75 @@ export const CITIES = [
   { id: 'sanjuan', name: '圣胡安', en: 'SAN JUAN', title: '加勒比海岸', quote: 'San Juan, donde el Caribe abraza las murallas antiguas.', quoteZh: '圣胡安，加勒比海拥抱古老城墙之处。' },
 ]
 
-// 全部系列
 export const AVATAR_SERIES = [
   { id: 'iliad', name: '荷马史诗系列', items: HEROES },
   { id: 'cities', name: '西语世界城市系列', items: CITIES },
 ]
 
-// 头像组件 — 陶土圆底 + 黑釉剪影图标
+// SVG 文本缓存，避免重复 fetch
+const svgCache = {}
+
+async function loadSvg(id) {
+  if (svgCache[id]) return svgCache[id]
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}avatars/${id}.svg`)
+    const text = await res.text()
+    svgCache[id] = text
+    return text
+  } catch {
+    return null
+  }
+}
+
+// 从 SVG 文本中提取内部内容（去掉外层 <svg> 标签），用内联 svg 重新包裹
+// 这样可以统一控制 viewBox 和大小，并让刻线保留真实颜色
+function extractInner(svgText) {
+  if (!svgText) return null
+  // 去掉 xml 声明和外层 svg 标签，只保留内部元素
+  const m = svgText.replace(/<\?xml.*?\?>/s, '').match(/<svg[^>]*>([\s\S]*)<\/svg>/i)
+  return m ? m[1] : null
+}
+
+// 头像组件 — 陶土圆底 + 黑釉剪影内联 SVG
+import { useEffect, useState } from 'react'
+
 export default function GreekAvatar({ hero, size = 64, showRing = true }) {
-  // 从所有系列里找
   const all = [...HEROES, ...CITIES]
   const h = all.find(x => x.id === hero) || all[0]
+  const [inner, setInner] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    loadSvg(h.id).then((text) => {
+      if (mounted) setInner(extractInner(text) || '')
+    })
+    return () => { mounted = false }
+  }, [h.id])
+
+  const border = Math.max(2, size * 0.04)
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
-      background: 'radial-gradient(circle at 35% 30%, #E8A060, #D98E4A 60%, #C67A38)',
+      background: 'radial-gradient(circle at 35% 28%, #C96B3B 0%, #B0572A 55%, #8C3F1E 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.3)',
-      border: `${Math.max(2, size * 0.04)}px solid #2B2B2B`,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.22), inset 0 2px 5px rgba(255,255,255,0.18), inset 0 -3px 8px rgba(0,0,0,0.25)',
+      border: `${border}px solid #1A1A1A`,
       position: 'relative', flexShrink: 0, overflow: 'hidden',
     }}>
       {showRing && <div style={{
-        position: 'absolute', inset: size * 0.08,
-        border: `${Math.max(1, size * 0.02)}px solid rgba(43,43,43,0.5)`,
+        position: 'absolute', inset: size * 0.09,
+        border: `${Math.max(1, size * 0.018)}px solid rgba(26,26,26,0.45)`,
         borderRadius: '50%', pointerEvents: 'none', zIndex: 2,
       }} />}
-      {/* 用 img 显示 SVG 文件，fill 由 CSS filter 处理为黑釉色 */}
-      <img
-        src={`${import.meta.env.BASE_URL}avatars/${h.id}.svg`}
-        alt={h.name}
-        style={{
-          width: size * 0.62, height: size * 0.62,
-          filter: 'brightness(0) saturate(100%)', // 变黑
-          zIndex: 1,
-        }}
-      />
+      {inner && (
+        <svg
+          viewBox="0 0 100 100"
+          width={size * 0.66}
+          height={size * 0.66}
+          style={{ zIndex: 1, display: 'block' }}
+          dangerouslySetInnerHTML={{ __html: inner }}
+        />
+      )}
     </div>
   )
 }

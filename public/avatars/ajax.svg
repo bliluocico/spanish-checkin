@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><path fill="currentColor" d="M256 16c25 24 100 72 150 72v96c0 96-75 240-150 312c-75-72-150-216-150-312V88c50 0 125-48 150-72"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 大埃阿斯：巨盾 -->
+  <!-- 外圈盾框 -->
+  <circle cx="50" cy="50" r="36" fill="#1A1A1A"/>
+  <!-- 内圈装饰带 -->
+  <circle cx="50" cy="50" r="29" stroke="#B0572A" stroke-width="1.6" fill="none"/>
+  <!-- 盾面螺旋纹（刻线） -->
+  <path d="M50 50 m-2 0 a2 2 0 1 1 4 0 a6 6 0 1 1 -12 0 a10 10 0 1 1 20 0 a14 14 0 1 1 -28 0" stroke="#B0572A" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <!-- 盾牌中心铆钉 -->
+  <circle cx="50" cy="50" r="2" fill="#B0572A"/>
+</svg>

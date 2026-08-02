@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><path fill="currentColor" d="M110.3 191.6c78.1 150.9 158.3 243 262 301.8l38.2-50.9c-6.7-36.9-10.5-61.8-5.7-115.7c-35.8-22.4-96.9-56.4-120-105.7c21.8-50 69.6-74.6 106.8-115.4c-55-22.45-105.4-40.4-142.8-78.85C238 74.16 192.5 130 155.5 154.1c-25.3-9.8-27.3-17.6-33.2-42.2c-24.87 13.7-25.55 53.4-12 79.7"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- 利马：王冠 + 海浪 -->
+  <!-- 王冠 -->
+  <path d="M28 38 L28 22 L36 28 L44 18 L50 26 L56 18 L64 28 L72 22 L72 38 Z" fill="#1A1A1A"/>
+  <rect x="28" y="38" width="44" height="6" fill="#1A1A1A"/>
+  <!-- 王冠刻线宝石 -->
+  <circle cx="36" cy="32" r="1.6" stroke="#B0572A" stroke-width="1" fill="none"/>
+  <circle cx="50" cy="26" r="2" stroke="#B0572A" stroke-width="1" fill="none"/>
+  <circle cx="64" cy="32" r="1.6" stroke="#B0572A" stroke-width="1" fill="none"/>
+  <line x1="30" y1="42" x2="70" y2="42" stroke="#B0572A" stroke-width="1.2"/>
+  <!-- 三层海浪 -->
+  <path d="M14 60 Q22 56 30 60 Q38 56 46 60 Q54 56 62 60 Q70 56 78 60 Q86 56 90 60" stroke="#1A1A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M14 72 Q22 68 30 72 Q38 68 46 72 Q54 68 62 72 Q70 68 78 72 Q86 68 90 72" stroke="#1A1A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M14 84 Q22 80 30 84 Q38 80 46 84 Q54 80 62 84 Q70 80 78 84 Q86 80 90 84" stroke="#1A1A1A" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- 海浪刻线 -->
+  <path d="M20 64 L24 62 M40 64 L44 62 M60 64 L64 62 M80 64 L84 62" stroke="#B0572A" stroke-width="1" opacity="0.7"/>
+</svg>
