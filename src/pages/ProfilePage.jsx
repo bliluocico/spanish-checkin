@@ -42,7 +42,19 @@ export default function ProfilePage() {
         setStats({ total: checks.length, mins, streak })
       }
 
-      const { data: chs } = await supabase.from('challenges').select('*').or(`creator_id.eq.${user.id},id.in.(select challenge_id from challenge_participants where user_id=eq.${user.id})`).eq('status','completed')
+      // 分步查询：先查我参与的挑战 ID
+      const { data: myParts } = await supabase.from('challenge_participants').select('challenge_id').eq('user_id', user.id)
+      const partIds = (myParts || []).map(p => p.challenge_id)
+
+      // 再查完成的挑战（我创建的 + 我参与的）
+      let chQuery = supabase.from('challenges').select('*').eq('status', 'completed')
+      if (partIds.length > 0) {
+        chQuery = chQuery.or(`creator_id.eq.${user.id},id.in.(${partIds.join(',')})`)
+      } else {
+        chQuery = chQuery.eq('creator_id', user.id)
+      }
+      const { data: chs } = await chQuery
+
       if (chs) {
         let wins=0,loss=0,draw=0
         chs.forEach(c => { if (c.winner_id===user.id) wins++; else if (c.failed_user_id===user.id) loss++; else draw++ })
