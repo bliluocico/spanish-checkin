@@ -2,12 +2,12 @@ import { motion } from 'framer-motion'
 
 export default function CervantesBadge({ size = 100, showText = true, animated = false }) {
   const s = size
-  const c = s / 2
+  const c = 60 // viewBox 中心 X（viewBox="0 0 120 140"，中心应为 60，与 size 无关）
   const Comp = animated ? motion.svg : 'svg'
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <Comp width={s} height={s} viewBox="0 0 120 140"
+      <Comp width={s} height={s} viewBox="0 0 120 140" style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
         {...(animated ? {
           initial: { scale: 0, rotate: -20 },
           animate: { scale: 1, rotate: 0 },
