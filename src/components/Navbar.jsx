@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, User, Trophy } from 'lucide-react'
+import { Home, User, Trophy, Zap } from 'lucide-react'
 
 export default function Navbar() {
   return (
@@ -10,6 +10,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/challenges" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <Trophy /><span>挑战</span>
+        </NavLink>
+        <NavLink to="/practice" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+          <Zap /><span>练习</span>
         </NavLink>
         <NavLink to="/profile" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <User /><span>我的</span>

@@ -8,6 +8,8 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { TENSE_NAMES, DIFFICULTY, buildPool, pickQuestion, getConjugation, generateDistractors, bonusOf } from './utils/verbsGame.js'
+import { VERBS_DATA } from './data/verbsData.js'
 
 /* ============================================================
  * 工具：生成本地日期字符串（与 App 存库格式 YYYY-MM-DD 一致）
@@ -258,4 +260,112 @@ test('[个人页] 嵌套 or() 查询字符串语法正确（ProfilePage L36）',
   const q = `creator_id.eq.${uid},id.in.(select challenge_id from challenge_participants where user_id=eq.${uid})`
   assert.match(q, /^creator_id\.eq\.abc-123,id\.in\.\(select challenge_id from challenge_participants where user_id=eq\.abc-123\)$/)
   assert.equal(q.includes('select challenge_id from'), true)
+})
+
+/* ============================================================
+ * 10. VerbsPracticePage / verbsGame.js 词汇练习游戏逻辑
+ *    （纯逻辑抽取自 src/utils/verbsGame.js，node 可直接加载）
+ * ============================================================ */
+const allTenses = ['presente', 'preterito', 'imperfecto', 'futuro', 'condicional', 'perfecto', 'subjuntivo_presente', 'subjuntivo_imperfecto']
+const allPersons = ['yo', 'tu', 'el', 'nosotros', 'vosotros', 'ellos']
+
+test('[题库] 71 个动词，8 时态 × 6 人称全部填满、无重复（verbsGame 数据完整性）', () => {
+  const seen = new Set()
+  let miss = 0
+  for (const v of VERBS_DATA) {
+    assert.ok(!seen.has(v.infinitive), `重复动词 ${v.infinitive}`)
+    seen.add(v.infinitive)
+    for (const t of allTenses) {
+      const c = v.conjugations[t]
+      assert.ok(c, `${v.infinitive} 缺时态 ${t}`)
+      for (const p of allPersons) {
+        const val = c[p]
+        if (val === undefined || val === null || String(val).trim() === '') miss++
+      }
+    }
+  }
+  assert.equal(VERBS_DATA.length, 71)
+  assert.equal(miss, 0)
+})
+
+test('[题库] 含核心常用动词 ser/estar/tener/ir/hablar/comer/leer/creer', () => {
+  const names = VERBS_DATA.map(v => v.infinitive)
+  for (const n of ['ser', 'estar', 'haber', 'tener', 'ir', 'hablar', 'comer', 'leer', 'creer']) {
+    assert.ok(names.includes(n), `缺少动词 ${n}`)
+  }
+})
+
+test('[时态] 8 种时态名称齐全', () => {
+  assert.equal(Object.keys(TENSE_NAMES).length, 8)
+})
+
+test('[难度] 三档限时递减 easy>normal>hard', () => {
+  assert.ok(DIFFICULTY.easy > DIFFICULTY.normal)
+  assert.ok(DIFFICULTY.normal > DIFFICULTY.hard)
+  assert.equal(DIFFICULTY.normal, 1.8)
+})
+
+test('[变位] ser 现在时 yo=soy, nosotros=somos（不规则动词抽查）', () => {
+  const ser = VERBS_DATA.find(v => v.infinitive === 'ser')
+  assert.equal(getConjugation(ser, 'presente', 'yo'), 'soy')
+  assert.equal(getConjugation(ser, 'presente', 'nosotros'), 'somos')
+  assert.equal(getConjugation(ser, 'preterito', 'yo'), 'fui')
+})
+
+test('[变位] abrir 完成时=he abierto；llegar 过去时 yo=llegué；leer 过去时 el=leyó', () => {
+  assert.equal(getConjugation(VERBS_DATA.find(v => v.infinitive === 'abrir'), 'perfecto', 'yo'), 'he abierto')
+  assert.equal(getConjugation(VERBS_DATA.find(v => v.infinitive === 'llegar'), 'preterito', 'yo'), 'llegué')
+  assert.equal(getConjugation(VERBS_DATA.find(v => v.infinitive === 'leer'), 'preterito', 'el'), 'leyó')
+  assert.equal(getConjugation(VERBS_DATA.find(v => v.infinitive === 'creer'), 'preterito', 'el'), 'creyó')
+})
+
+test('[出题池] 混合模式 = 全部 71 个', () => {
+  assert.equal(buildPool(VERBS_DATA, 'all', false, []).length, 71)
+})
+
+test('[出题池] 指定时态筛选后都含该时态', () => {
+  const pool = buildPool(VERBS_DATA, 'presente', false, [])
+  assert.ok(pool.length > 0)
+  assert.ok(pool.every(x => getConjugation(x.verb, 'presente', 'yo')))
+})
+
+test('[出题池] 错题复习只含错题里的动词', () => {
+  const wrongs = [{ infinitive: 'ser', tense: 'presente', person: 'yo' }]
+  const pool = buildPool(VERBS_DATA, 'all', true, wrongs)
+  assert.equal(pool.length, 1)
+  assert.equal(pool[0].verb.infinitive, 'ser')
+  assert.equal(pool[0].tense, 'presente')
+})
+
+test('[抽题] 指定现在时时抽出的题是现在时且有正确答案', () => {
+  const pick = pickQuestion(VERBS_DATA, 'presente', false, [])
+  assert.ok(pick)
+  assert.equal(pick.tenseKey, 'presente')
+  assert.ok(getConjugation(pick.verb, 'presente', pick.person))
+})
+
+test('[抽题] 混合模式抽 20 次每次都有正确答案', () => {
+  for (let i = 0; i < 20; i++) {
+    const pick = pickQuestion(VERBS_DATA, 'all', false, [])
+    assert.ok(pick)
+    assert.ok(getConjugation(pick.verb, pick.tenseKey, pick.person))
+  }
+})
+
+test('[选项] 4 个选项互不重复且含正确答案', () => {
+  const ser = VERBS_DATA.find(v => v.infinitive === 'ser')
+  const opts = generateDistractors('soy', ser, 'presente', 'yo')
+  assert.equal(opts.length, 4)
+  assert.equal(new Set(opts).size, 4)
+  assert.ok(opts.includes('soy'))
+})
+
+test('[速度加成] 边界：<0.8=3, <1.2=2, <1.8=1, ≥1.8=0', () => {
+  assert.equal(bonusOf(0.79), 3)
+  assert.equal(bonusOf(0.8), 2)
+  assert.equal(bonusOf(1.19), 2)
+  assert.equal(bonusOf(1.2), 1)
+  assert.equal(bonusOf(1.79), 1)
+  assert.equal(bonusOf(1.8), 0)
+  assert.equal(bonusOf(3), 0)
 })

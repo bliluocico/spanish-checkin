@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import ChallengeListPage from './pages/ChallengeListPage'
 import ChallengeDetailPage from './pages/ChallengeDetailPage'
+import VerbsPracticePage from './pages/VerbsPracticePage'
 import Navbar from './components/Navbar'
 import ErrorBoundary from './components/ErrorBoundary'
 
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/" element={<AuthGuard><HomePage /></AuthGuard>} />
             <Route path="/challenges" element={<AuthGuard><ChallengeListPage /></AuthGuard>} />
             <Route path="/challenges/:id" element={<AuthGuard><ChallengeDetailPage /></AuthGuard>} />
+            <Route path="/practice" element={<AuthGuard><VerbsPracticePage /></AuthGuard>} />
             <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
           </Routes>
         </div>
