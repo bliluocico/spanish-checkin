@@ -30,6 +30,9 @@ export default function VerbsPracticePage() {
   const [wrongs, setWrongs] = useState(loadWrongs)
 
   const ref = useRef({ limit: DIFFICULTY.normal, timeLeft: 0, start: 0, isAnswered: false, maxStreak: 0 })
+  // 存最新的事件处理函数，供键盘监听（只绑定一次）读取
+  const handlersRef = useRef()
+  handlersRef.current = { handleAnswer, resetGame, newQuestion, stage, opts, waitNext }
 
   const accuracy = attempts > 0 ? Math.round((correctN / attempts) * 100) : 0
   const avgSpeed = speeds.length > 0 ? (speeds.reduce((a, b) => a + b, 0) / speeds.length) : 0
@@ -172,6 +175,20 @@ export default function VerbsPracticePage() {
     ref.current.limit = DIFFICULTY[difficulty] || 6
   }, [difficulty])
 
+  // 每答一题实时保存最高纪录，中途刷新也不丢
+  useEffect(() => {
+    if (score <= 0) return
+    const s = loadStats()
+    const ms = ref.current.maxStreak
+    if (score > s.bestScore || ms > s.bestStreak) {
+      s.bestScore = Math.max(s.bestScore, score)
+      s.bestStreak = Math.max(s.bestStreak, ms)
+      saveStats(s)
+      setBest(s)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score])
+
   function toggleWrongMode() {
     if (!wrongMode && wrongs.length === 0) {
       alert('错题本是空的！答错后会自动记进来。')
@@ -188,21 +205,25 @@ export default function VerbsPracticePage() {
     resetGame(true)
   }
 
-  // 键盘：1-4 答题 / R 重置 / N 下一题
+  // 键盘：1-4 答题 / R 重置 / N 下一题（只绑定一次；焦点在输入框时不响应，避免误答题）
   useEffect(() => {
     function onKey(e) {
+      const t = e.target
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return
+      const h = handlersRef.current
       if (e.key >= '1' && e.key <= '4') {
         const idx = +e.key - 1
-        if (stage === 'playing' && opts[idx] && opts[idx].status === 'idle') handleAnswer(idx)
+        if (h.stage === 'playing' && h.opts[idx] && h.opts[idx].status === 'idle') h.handleAnswer(idx)
       } else if (e.key === 'r' || e.key === 'R') {
-        resetGame(true)
+        h.resetGame(true)
       } else if (e.key === 'n' || e.key === 'N') {
-        if (waitNext) newQuestion()
+        if (h.waitNext) h.newQuestion()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /* ─────────── 渲染 ─────────── */
 

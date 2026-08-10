@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Trophy, CalendarDays, Clock, Users, Flag, Trash2, RefreshCw, BookOpen, Pen, Timer, Target, Clock4 } from 'lucide-react'
+import { CalendarDays, Clock, Users, Flag, Trash2, RefreshCw, BookOpen, Pen, Timer, Target } from 'lucide-react'
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 import CreateChallengeModal from '../components/CreateChallengeModal'
@@ -54,7 +54,6 @@ export default function ChallengeListPage() {
   }
 
   const TYPE_ICON = { word: <BookOpen size={14} />, poetry: <Pen size={14} />, time: <Timer size={14} />, custom: <Target size={14} /> }
-  const TYPE_NAME = { word: '单词', poetry: '诗歌', time: '时长', custom: '自由' }
 
   const badge = (c) => {
     if (c.pending) return { t: '⏳ 待接受', c: 'badge-wine' }

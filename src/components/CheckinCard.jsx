@@ -3,7 +3,6 @@ import { Clock, X, Pencil, Trash2, Check, Heart, Bell, BookOpen } from 'lucide-r
 import { supabase } from '../supabase'
 import { useAuth } from '../authContext'
 
-import PoetryCard from './PoetryCard'
 import GreekAvatar from './GreekAvatars'
 
 function ago(d) {

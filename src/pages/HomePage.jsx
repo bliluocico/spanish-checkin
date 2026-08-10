@@ -45,7 +45,6 @@ export default function HomePage() {
   const [friendStreak, setFriendStreak] = useState(0)
   const [myStreak, setMyStreak] = useState(0)
   const [reminderCount, setReminderCount] = useState(0)
-  const [friendId, setFriendId] = useState(null)
 
   const fetch = useCallback(async () => {
     if (!user) return
@@ -77,7 +76,6 @@ export default function HomePage() {
       const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', user.id)
       if (friends?.length > 0) {
         const fid = friends[0].friend_id
-        setFriendId(fid)
         // 好友连击
         const { data: fChecks } = await supabase.from('checkins').select('checkin_date').eq('user_id', fid).is('challenge_id', null).order('checkin_date', { ascending: false })
         if (fChecks) {

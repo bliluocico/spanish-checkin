@@ -1,157 +1,162 @@
 {
   "runId": "1785248482-22385",
-  "passed": true,
-  "securityScore": 9,
+  "passed": false,
+  "securityScore": 5,
   "commentScore": 3,
-  "robustnessScore": 7,
-  "totalScore": 19,
-  "hasHighRisk": false,
-  "highRiskDetails": [],
-  "timestamp": "2026-07-28T21:05:00+08:00",
-  "project": "西语学习打卡 Spanish Checkin",
-  "summary": "项目整体安全状况良好（9/10），代码健壮性不错（7/10），但注释严重不足（3/10）。无高危安全问题。总评 19/30，通过。优先改进：补充函数注释和魔法数字说明。",
+  "robustnessScore": 6,
+  "totalScore": 14,
+  "hasHighRisk": true,
+  "highRiskDetails": [
+    "supabase-v2-migration.sql L85-87：challenge_participants 表 INSERT 策略为 WITH CHECK (true)，任何登录用户可把自己加入任意挑战，越权查看他人挑战内容",
+    "supabase-v5-social.sql L22：reminders 表 FOR ALL USING (true)，任何登录用户可读取/删除所有人的提醒",
+    "多个 async 操作（accept/reject/delete/saveEdit/handleRemind/toggleLike 等）无 catch，失败触发 unhandledrejection，ErrorBoundary 将整页变成错误页"
+  ],
+  "timestamp": "2026-08-10T20:30:00+08:00",
+  "project": "spanish-checkin",
+  "summary": "代码整体结构清晰、命名基本良好、题库数据完整（71动词×8时态×6人称经测试验证）、无硬编码密钥、无 SQL 注入、无 eval。但存在数据库权限策略（RLS）配置上的越权漏洞（任何人可加入任意挑战、可操作所有人的提醒），且多个前端功能与数据库策略不匹配导致接受/拒绝/删除挑战功能实际不可用。注释覆盖率约 5%，严重不足（目标 30%）。建议修复数据库权限策略后再推送。",
   "details": {
     "security": {
-      "score": 9,
+      "score": 5,
       "maxScore": 10,
       "findings": [
         {
-          "severity": "green",
-          "type": "环境变量保护",
-          "description": ".env 文件已正确加入 .gitignore，Supabase anon key 不会泄露到 Git 仓库",
-          "status": "good"
+          "severity": "red",
+          "location": "supabase-v2-migration.sql L85-87",
+          "description": "challenge_participants 的 INSERT 策略是 WITH CHECK (true)，等于任何登录用户都可以把自己塞进任意挑战，看到别人的挑战内容和胜负信息",
+          "suggestion": "改成 WITH CHECK (auth.uid() IN (SELECT friend_id FROM friendships WHERE user_id = <创建者>)) 或要求带邀请令牌，只有被邀请者才能加入"
         },
         {
-          "severity": "green",
-          "type": "注入防护",
-          "description": "无 eval()、innerHTML、document.write() 等危险操作，使用 Supabase SDK 参数化查询，无 SQL 注入风险",
-          "status": "good"
-        },
-        {
-          "severity": "green",
-          "type": "硬编码凭证",
-          "description": "代码中无硬编码密码、API 密钥、数据库连接串等敏感信息",
-          "status": "good"
+          "severity": "red",
+          "location": "supabase-v5-social.sql L22",
+          "description": "reminders 表 RLS 是 FOR ALL USING (true)，任何登录用户能读、删所有人的提醒，可恶意清空别人的提醒",
+          "suggestion": "改为 SELECT/INSERT 只能操作 to_user=自己 或 from_user=自己，DELETE 只能删自己收到的"
         },
         {
           "severity": "yellow",
-          "type": "控制台日志",
-          "description": "生产代码中留有 console.error 和 console.warn（共 5 处），虽然只打印了错误消息，但建议在正式上线前移除或替换为静默的错误上报",
-          "locations": ["src/supabase.js:7", "src/authContext.jsx:39,41,45", "src/pages/HomePage.jsx:63", "src/pages/ProfilePage.jsx:76"],
-          "suggestion": "可以保留，但如果你打算给朋友用，可以考虑用一个更优雅的错误展示方式代替控制台打印"
+          "location": "supabase-v2-migration.sql L69-71",
+          "description": "challenges 表 UPDATE 只允许创建者，但前端 ChallengeDetailPage L120 让被邀请者更新 pending=false，策略与代码意图冲突，接受按钮实际不生效",
+          "suggestion": "二选一：给 challenges 加'参与者可更新 pending'策略，或把 pending 字段改为由 challenge_participants.accepted 推导"
+        },
+        {
+          "severity": "yellow",
+          "location": "supabase-v2-migration.sql（challenge_participants 无 UPDATE/DELETE 策略）",
+          "description": "challenge_participants 没有 UPDATE 和 DELETE 策略，前端 accept()（改 accepted）和 reject()（删参与记录）都会被数据库拒绝，功能失效且报错",
+          "suggestion": "补上策略：UPDATE/DELETE USING (user_id = auth.uid())"
+        },
+        {
+          "severity": "yellow",
+          "location": "supabase-v2-migration.sql（challenges 无 DELETE 策略）",
+          "description": "challenges 没有 DELETE 策略，ChallengeListPage L52 删除挑战会失败",
+          "suggestion": "加 DELETE 策略 USING (creator_id = auth.uid())"
+        },
+        {
+          "severity": "yellow",
+          "location": "src/pages/ChallengeDetailPage.jsx L42-80",
+          "description": "挑战到期自动结束和胜负判定写在页面代码里，任何用户访问过期挑战页都会触发判定，非创建者触发时 update 被 RLS 拒绝产生报错",
+          "suggestion": "把到期判定移到数据库定时任务（pg_cron）或 Supabase Edge Function，页面只负责展示"
+        },
+        {
+          "severity": "yellow",
+          "location": "src/components/ErrorBoundary.jsx L24-26",
+          "description": "把未捕获的 Promise 错误（unhandledrejection）也转成整页报错，而 accept/reject/delete/saveEdit/handleRemind/toggleLike 等多个异步操作没有 try-catch，一次网络波动就整站白屏",
+          "suggestion": "给这些操作补 try-catch 并提示'操作失败'；错误边界只拦页面崩溃，不拦单个操作失败"
         },
         {
           "severity": "green",
-          "type": "随机数用途",
-          "description": "Math.random() 出现 3 处，均用于非安全场景（用户名后缀随机字符串、星星动画位置），不涉及密码学安全",
-          "status": "info"
+          "location": "src/components/GreekAvatars.jsx L98",
+          "description": "dangerouslySetInnerHTML 的 SVG 来自项目自己的 public/avatars 静态文件，不是用户输入，当前安全",
+          "suggestion": "在注释里写明'仅允许加载项目内置 SVG，禁止传入用户上传内容'，防止以后被改造成 XSS"
+        },
+        {
+          "severity": "green",
+          "location": "全部",
+          "description": "做得好的地方：无硬编码密码/密钥、.env 已加入 .gitignore、GitHub Actions 用 Secrets 注入 Supabase 配置、无 SQL 拼接注入、无 eval、anon key 属于公开前端密钥用法正确"
         }
       ]
     },
-    "comments": {
+    "comment": {
       "score": 3,
       "maxScore": 10,
-      "coverage": "4.35%",
-      "coverageDetail": "50 行注释 / 1150 行有效代码（不含空行），远低于 30% 达标线和 15% 底线",
+      "coverage": "注释行/非空代码行 = 192/3342 = 5.7%，远低于 30% 目标",
       "findings": [
         {
-          "severity": "red",
-          "type": "注释严重不足",
-          "description": "50 行注释对 1150 行代码，覆盖率仅 4.35%。大部分源文件完全没有注释（supabase.js、App.jsx、main.jsx、AuthGuard.jsx、Navbar.jsx 均为零注释）",
-          "suggestion": "至少给每个函数加一句话说明它做什么，给每个组件文件顶部加一行说明这个组件负责什么"
-        },
-        {
-          "severity": "red",
-          "type": "魔法数字未解释",
-          "description": "CheckinCard.jsx 中 60000、3600000、86400000 三个数字没有任何注释说明它们代表什么（毫秒→分钟→小时→天的换算）",
-          "locations": ["src/components/CheckinCard.jsx:9-11"],
-          "suggestion": "建议在这三行前面加一行注释：'// 把毫秒差转成分钟、小时、天数'，或者把数字写成常量 const MS_PER_MINUTE = 60000"
+          "severity": "yellow",
+          "location": "src/components/BorgesBadge.jsx / DonQuixoteBadge.jsx / CervantesBadge.jsx",
+          "description": "三个徽章组件各 130 行左右，只有 1 处'viewBox 中心'注释，大量 SVG 路径、滤镜、渐变色无说明",
+          "suggestion": "在每组图形（绶带/外圈/迷宫/风车）前加一行'这是画什么的'"
         },
         {
           "severity": "yellow",
-          "type": "注释偏简单",
-          "description": "现有的 50 行注释大多是节标记（如'// 邮箱''// 密码''// 错误提示'），几乎没有解释'为什么这样做'",
-          "suggestion": "比如 authContext.jsx 中 ensureProfile 函数，可以加注释说明：'// 因为 Supabase 的数据库触发器偶尔会失败，所以前端这里做一层兜底，确保每个用户注册后一定有 profile 记录'"
-        },
-        {
-          "severity": "yellow",
-          "type": "术语未解释",
-          "description": "项目中使用了 'RLS（行级安全策略）'、'JWT'、'useCallback'、'framer-motion' 等术语，对一个只会 Excel 的会计同学来说较难理解",
-          "suggestion": "在 supabase-setup.sql 的 RLS 部分开头加一句大白话：'RLS 就像门禁——只有自己的打卡记录自己能改，朋友的打卡只能看不能改'"
+          "location": "src/pages/LoginPage.jsx / ChallengeListPage.jsx / App.jsx / Navbar.jsx",
+          "description": "基本零注释，核心流程（校验、查询、权限判断）没说明为什么",
+          "suggestion": "重点给 submit 校验顺序、del 权限、路由守卫补注释"
         },
         {
           "severity": "green",
-          "type": "已有好注释示例",
-          "description": "authContext.jsx:10 '确保用户有 profile 记录（防止触发器失败的情况）' 和 HomePage.jsx:41 '获取所有相关用户的 profile（单独查询，避免外键关联问题）' 这两条注释很好，解释了'为什么'",
-          "status": "good"
+          "location": "src/utils/verbsGame.js / src/pages/VerbsPracticePage.jsx / src/logic.test.js",
+          "description": "这几个文件注释质量好：函数都有'人话'说明，魔法数字（12/6/3 秒、0.8/1.2/1.8 秒加成）都解释了",
+          "suggestion": "以它们为模板，给其余文件补注释"
+        },
+        {
+          "severity": "yellow",
+          "location": "checkin.test.js L63-87",
+          "description": "calculateStreak 测试的还是用 toISOString() 的旧版逻辑（会踩 UTC+8 时区坑），而真实代码已改用本地日期写法，注释与实际不一致",
+          "suggestion": "删掉这个过时测试文件，统一保留 logic.test.js"
         }
       ]
     },
     "robustness": {
-      "score": 7,
+      "score": 6,
       "maxScore": 10,
       "findings": [
         {
-          "severity": "green",
-          "type": "空值保护",
-          "description": "大部分关键位置都有空值保护，如 ensureProfile 第一行 if (!userId) return，getValues 使用 ?. 和 || '' 兜底",
-          "status": "good"
-        },
-        {
-          "severity": "green",
-          "type": "错误处理",
-          "description": "关键异步操作（handleSubmit、fetchCheckins、signIn/signUp）都有 try-catch 包裹，且有 finally 恢复 loading 状态；HomePage 有'重试'按钮",
-          "status": "good"
-        },
-        {
-          "severity": "green",
-          "type": "命名规范",
-          "description": "变量和函数命名整体清晰（timeAgo、fetchCheckins、ensureProfile、trimmedContent），没有出现 a、b、temp 这种无意义变量名",
-          "status": "good"
-        },
-        {
-          "severity": "green",
-          "type": "文件组织",
-          "description": "components / pages / styles 三层分离合理，目录结构清晰，无死代码",
-          "status": "good"
+          "severity": "yellow",
+          "location": "src/pages/VerbsPracticePage.jsx L192-205",
+          "description": "键盘监听的 useEffect 没写依赖数组，每次渲染都重新绑定/解绑事件；且全局监听时，焦点在时态下拉框时按 1-4 也会答题（误触）",
+          "suggestion": "依赖数组写 []，并在 onKey 里判断 document.activeElement 是否是输入框"
         },
         {
           "severity": "yellow",
-          "type": "Profile 加载缺错误处理",
-          "description": "ProfilePage.jsx 中的 loadProfile 函数没有 try-catch，如果 Supabase 查询抛出异常会导致未捕获的错误",
-          "location": "src/pages/ProfilePage.jsx:14-67",
-          "suggestion": "给 loadProfile 函数体包一个 try-catch，在 catch 中提示'加载个人信息失败'"
+          "location": "src/pages/VerbsPracticePage.jsx L99",
+          "description": "用渲染闭包里的 streak 判断是否降低限时，实际是旧值，难度浮动会滞后一题",
+          "suggestion": "把当前连击数也放 ref 里维护，判断用 ref 的实时值"
         },
         {
           "severity": "yellow",
-          "type": "CheckinCard 未校验输入结构",
-          "description": "CheckinCard 组件直接访问 checkin.profiles?.nickname 和 checkin.created_at，如果传入的 checkin 是 null 会直接报错白屏",
-          "location": "src/components/CheckinCard.jsx:21-76",
-          "suggestion": "在函数开头加一行：if (!checkin) return null; 防止白屏"
+          "location": "src/pages/HomePage.jsx L73-106",
+          "description": "useEffect 依赖了 checkins（每次刷新都是新数组），会反复重查连击和提醒，多出无谓的网络请求",
+          "suggestion": "把这个 effect 的依赖改为只依赖 user，或把连击统计放到主 fetch 里一起查"
         },
         {
           "severity": "yellow",
-          "type": "React 中 Math.random() 放在 render 里",
-          "description": "CheckinForm.jsx 的星星动画中 Math.random() 写在组件渲染函数里（而非 useEffect 或 useMemo），每次组件重渲染都会产生新的随机位置，可能导致星星闪跳",
-          "location": "src/components/CheckinForm.jsx:132-133",
-          "suggestion": "把随机位置的计算放到 useMemo 中，或者用 React 的 key 机制确保只在首次渲染时生成"
+          "location": "src/components/CheckinForm.jsx L56",
+          "description": "setTimeout 在组件卸载后仍会执行 close()，对已卸载组件更新状态",
+          "suggestion": "用 useRef 标记是否已卸载，回调前检查"
+        },
+        {
+          "severity": "yellow",
+          "location": "src/pages/VerbsPracticePage.jsx L134-151",
+          "description": "历史成绩只在 resetGame 时保存，中途刷新/离开页面当前局的分数会丢",
+          "suggestion": "监听组件卸载或每答完一题就保存"
+        },
+        {
+          "severity": "green",
+          "location": "src/utils/verbsGame.js / src/data/verbsData.js",
+          "description": "做得好的地方：题库 71 动词数据完整且经测试验证、getConjugation 用可选链防空、localStorage 读写有 try-catch、Fisher-Yates 洗牌正确、generateDistractors 有保底"
+        },
+        {
+          "severity": "yellow",
+          "location": "src/components/Btn*.jsx Card*.jsx Form*.jsx",
+          "description": "9 个通用组件（BtnPrimary/BtnGhost/BtnBrutal/BtnSwap/CardBrutal/CardGlow/CardSplit/FormBrutal/FormWarm）全部未被引用，是遗留死代码",
+          "suggestion": "删除或移到一个 archive 目录，避免混淆"
+        },
+        {
+          "severity": "yellow",
+          "location": "package.json",
+          "description": "没有 test 脚本，测试要手动运行 node --test；两个测试文件（checkin.test.js / logic.test.js）并存且前者过时",
+          "suggestion": "加 npm test 脚本统一跑 logic.test.js，删除 checkin.test.js"
         }
       ]
-    },
-    "scannedFiles": 12,
-    "scannedFileList": [
-      "src/supabase.js",
-      "src/App.jsx",
-      "src/authContext.jsx",
-      "src/main.jsx",
-      "src/components/AuthGuard.jsx",
-      "src/components/CheckinCard.jsx",
-      "src/components/CheckinForm.jsx",
-      "src/components/Navbar.jsx",
-      "src/pages/HomePage.jsx",
-      "src/pages/LoginPage.jsx",
-      "src/pages/ProfilePage.jsx",
-      "src/styles/global.css"
-    ]
+    }
   }
 }

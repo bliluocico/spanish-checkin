@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sparkles, ChevronDown, ChevronUp, Plus, X, Pen, BookOpen } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, X, Pen, BookOpen } from 'lucide-react'
 
 export default function PoetryEditor({ onSubmit, loading }) {
   const [poemText, setPoemText] = useState('')
