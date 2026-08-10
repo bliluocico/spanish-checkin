@@ -4,7 +4,7 @@ import { RefreshCw, Trash2, BookOpen, Trophy } from 'lucide-react'
 import { VERBS_DATA } from '../data/verbsData'
 import { Seigaiha } from '../components/WafuuPatterns'
 import {
-  TENSE_NAMES, DIFFICULTY, loadWrongs, saveWrongs, loadStats, saveStats,
+  TENSE_NAMES, DIFFICULTY, DIFF_RANGE, loadWrongs, saveWrongs, loadStats, saveStats,
   pickQuestion, getConjugation, generateDistractors, bonusOf,
 } from '../utils/verbsGame'
 
@@ -96,11 +96,11 @@ export default function VerbsPracticePage() {
       setStreak(s => { const ns = s + 1; ref.current.maxStreak = Math.max(ref.current.maxStreak, ns); return ns })
       setScore(sc => sc + 10 + bonus)
       setSpeeds(sp => [...sp, elapsed])
-      if (streak >= 5 && ref.current.limit > 1.0) ref.current.limit = Math.max(1.0, ref.current.limit - 0.1)
+      if (streak >= 5) ref.current.limit = Math.max(DIFF_RANGE[difficulty][0], ref.current.limit - 0.1)
       setFb({ type: 'correct', text: `✅ 正确！ ${elapsed.toFixed(2)}秒${bonus > 0 ? ' ⚡+' + bonus : ''}` })
     } else {
       setStreak(0)
-      ref.current.limit = Math.min(2.5, ref.current.limit + 0.1)
+      ref.current.limit = Math.min(DIFF_RANGE[difficulty][1], ref.current.limit + 0.1)
       addWrong()
       setFb({ type: 'wrong', text: `❌ "${selectedText}" 不对，正确答案是 "${q.correct}"` })
     }
@@ -144,7 +144,7 @@ export default function VerbsPracticePage() {
     saveSession()
     setScore(0); setStreak(0); setAttempts(0); setCorrectN(0); setQnum(0)
     setSpeeds([]); setOpts([]); setQ(null); setFb(null); setWaitNext(false)
-    ref.current.limit = DIFFICULTY[difficulty] || 1.8
+    ref.current.limit = DIFFICULTY[difficulty] || 6
     ref.current.maxStreak = 0
     setPct(100)
     setStage(showReady ? 'ready' : 'playing')
@@ -153,7 +153,7 @@ export default function VerbsPracticePage() {
   // 开始
   function startGame() {
     setStage('playing')
-    ref.current.limit = DIFFICULTY[difficulty] || 1.8
+    ref.current.limit = DIFFICULTY[difficulty] || 6
     newQuestion()
   }
 
@@ -162,14 +162,14 @@ export default function VerbsPracticePage() {
     if (stage !== 'playing') return
     setScore(0); setStreak(0); setAttempts(0); setCorrectN(0); setQnum(0); setSpeeds([])
     ref.current.maxStreak = 0
-    ref.current.limit = DIFFICULTY[difficulty] || 1.8
+    ref.current.limit = DIFFICULTY[difficulty] || 6
     newQuestion()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tense, wrongMode])
 
   // 切难度 → 只更新限时
   useEffect(() => {
-    ref.current.limit = DIFFICULTY[difficulty] || 1.8
+    ref.current.limit = DIFFICULTY[difficulty] || 6
   }, [difficulty])
 
   function toggleWrongMode() {
@@ -221,7 +221,7 @@ export default function VerbsPracticePage() {
           <div className="text-5xl mb-3">⚡</div>
           <h2 className="font-playfair text-xl font-extrabold mb-1">准备好了吗？</h2>
           <p className="text-sm" style={{ color: 'var(--ink-light)' }}>
-            每题限时 <b style={{ color: 'var(--wine)' }}>{(DIFFICULTY[difficulty] || 1.8).toFixed(1)}</b> 秒
+            每题限时 <b style={{ color: 'var(--wine)' }}>{DIFFICULTY[difficulty] || 6}</b> 秒
             · 选对 10 分，越快加成越多
           </p>
 
@@ -282,9 +282,9 @@ export default function VerbsPracticePage() {
           {Object.entries(TENSE_NAMES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
         <select className="input" style={{ flex: '1 1 90px', padding: '8px 10px', fontSize: '0.8rem' }} value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-          <option value="easy">🐢 简单</option>
-          <option value="normal">⚡ 普通</option>
-          <option value="hard">🔥 困难</option>
+          <option value="easy">🐢 简单 12s</option>
+          <option value="normal">⚡ 普通 6s</option>
+          <option value="hard">🔥 困难 3s</option>
         </select>
         <button className={`btn btn-sm ${wrongMode ? 'btn-primary' : 'btn-outline'}`} onClick={toggleWrongMode}>
           📕 错题{wrongs.length > 0 ? ` ${wrongs.length}` : ''}

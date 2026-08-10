@@ -16,7 +16,10 @@ export const TENSE_NAMES = {
   perfecto: '现在完成时',
 }
 
-export const DIFFICULTY = { easy: 2.5, normal: 1.8, hard: 1.2 }
+// 三档限时（秒）：时间越长越简单
+export const DIFFICULTY = { easy: 12, normal: 6, hard: 3 }
+// 自适应浮动范围 [下限, 起始/上限]
+export const DIFF_RANGE = { easy: [3, 12], normal: [2, 6], hard: [1, 3] }
 export const PERSONS = ['yo', 'tu', 'el', 'nosotros', 'vosotros', 'ellos']
 
 const LS_WRONG = 'svp_wrongs'

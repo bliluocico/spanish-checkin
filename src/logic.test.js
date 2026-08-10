@@ -299,10 +299,10 @@ test('[时态] 8 种时态名称齐全', () => {
   assert.equal(Object.keys(TENSE_NAMES).length, 8)
 })
 
-test('[难度] 三档限时递减 easy>normal>hard', () => {
+test('[难度] 三档限时递减 easy>normal>hard（12/6/3 秒）', () => {
   assert.ok(DIFFICULTY.easy > DIFFICULTY.normal)
   assert.ok(DIFFICULTY.normal > DIFFICULTY.hard)
-  assert.equal(DIFFICULTY.normal, 1.8)
+  assert.equal(DIFFICULTY.normal, 6)
 })
 
 test('[变位] ser 现在时 yo=soy, nosotros=somos（不规则动词抽查）', () => {
